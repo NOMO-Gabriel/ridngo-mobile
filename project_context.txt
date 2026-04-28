@@ -1,3 +1,3687 @@
+=== RidnGo Mobile - Project Context Scan ===
+Date: 04/28/2026 06:46:09
+
+
+========================================
+FILE: app\(auth)\landing.tsx
+========================================
+import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, Dimensions } from 'react-native';
+import { router } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../../src/context/ThemeContext';
+import { ThemeToggle } from '../../src/components/ThemeToggle';
+import { Spacing, Radius } from '../../src/types/theme';
+
+export default function LandingScreen() {
+  const { Colors } = useTheme();
+
+  return (
+    <View style={[styles.container, { backgroundColor: Colors.background }]}>
+      <View style={[styles.blob1, { backgroundColor: 'rgba(255,140,0,0.12)' }]} />
+      <View style={[styles.blob2, { backgroundColor: 'rgba(59,130,246,0.08)' }]} />
+
+      <SafeAreaView style={styles.safe}>
+        {/* Top bar */}
+        <View style={styles.topBar}>
+          <View style={styles.logoRow}>
+            <View style={styles.logoBox}>
+              <Text style={styles.logoLetter}>R</Text>
+            </View>
+            <Text style={[styles.logoText, { color: Colors.text }]}>RidnGo</Text>
+          </View>
+          <ThemeToggle />
+        </View>
+
+        {/* Hero */}
+        <View style={styles.heroSection}>
+          <View style={[styles.iconContainer, { backgroundColor: Colors.orangeBg }]}>
+            <Ionicons name="car" size={64} color={Colors.orange} />
+          </View>
+          <Text style={[styles.tag, { color: Colors.orange }]}>AFRICA'S FREEDOM MOVE</Text>
+          <Text style={[styles.headline, { color: Colors.text }]}>
+            Votre course,{'\n'}vos règles.
+          </Text>
+          <Text style={[styles.subhead, { color: Colors.textSecondary }]}>
+            Mise en relation directe avec des chauffeurs certifiés au Cameroun. Prix transparents, sécurité totale.
+          </Text>
+
+          <View style={styles.features}>
+            {[
+              { icon: 'shield-checkmark', label: 'Chauffeurs certifiés' },
+              { icon: 'cash', label: 'Prix négociables' },
+              { icon: 'flash', label: 'Rapide & fiable' },
+            ].map((f, i) => (
+              <View key={i} style={[styles.feature, { backgroundColor: Colors.orangeBg }]}>
+                <Ionicons name={f.icon as any} size={16} color={Colors.orange} />
+                <Text style={[styles.featureText, { color: Colors.orange }]}>{f.label}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* CTAs */}
+        <View style={styles.ctas}>
+          <TouchableOpacity style={styles.btnPrimary} onPress={() => router.push('/(auth)/login')} activeOpacity={0.85}>
+            <Text style={styles.btnPrimaryText}>Se connecter</Text>
+            <Ionicons name="arrow-forward" size={20} color="#0D0D0D" />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.btnSecondary, { backgroundColor: Colors.card, borderColor: Colors.cardBorder }]}
+            onPress={() => router.push({ pathname: '/(auth)/register', params: { role: 'passenger' } })}
+            activeOpacity={0.85}
+          >
+            <Text style={[styles.btnSecondaryText, { color: Colors.text }]}>Créer un compte passager</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.btnGhost}
+            onPress={() => router.push({ pathname: '/(auth)/register', params: { role: 'driver' } })}
+            activeOpacity={0.85}
+          >
+            <Ionicons name="car-sport" size={16} color={Colors.orange} />
+            <Text style={[styles.btnGhostText, { color: Colors.orange }]}>Devenir chauffeur</Text>
+          </TouchableOpacity>
+        </View>
+
+        <Text style={[styles.footer, { color: Colors.textMuted }]}>© 2026 Yowyob Inc. Ltd. — Yaoundé, Cameroun</Text>
+      </SafeAreaView>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+  safe: { flex: 1, paddingHorizontal: Spacing.lg },
+  blob1: { position: 'absolute', width: 300, height: 300, borderRadius: 150, top: -80, left: -80 },
+  blob2: { position: 'absolute', width: 250, height: 250, borderRadius: 125, bottom: -60, right: -60 },
+  topBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: Spacing.lg },
+  logoRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  logoBox: { width: 40, height: 40, backgroundColor: '#FF8C00', borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  logoLetter: { color: '#FFFFFF', fontWeight: '900', fontSize: 20, fontStyle: 'italic' },
+  logoText: { fontWeight: '900', fontSize: 24, letterSpacing: -0.5 },
+  heroSection: { flex: 1, justifyContent: 'center', paddingVertical: Spacing.xl },
+  iconContainer: { width: 100, height: 100, borderRadius: 32, alignItems: 'center', justifyContent: 'center', marginBottom: Spacing.lg },
+  tag: { fontWeight: '900', fontSize: 10, letterSpacing: 3, textTransform: 'uppercase', marginBottom: Spacing.sm },
+  headline: { fontWeight: '900', fontSize: 38, lineHeight: 44, letterSpacing: -1, marginBottom: Spacing.md },
+  subhead: { fontSize: 15, lineHeight: 22, fontWeight: '500', marginBottom: Spacing.xl },
+  features: { flexDirection: 'row', gap: Spacing.sm, flexWrap: 'wrap' },
+  feature: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 8, borderRadius: Radius.full },
+  featureText: { fontWeight: '700', fontSize: 12 },
+  ctas: { gap: Spacing.md, paddingBottom: Spacing.lg },
+  btnPrimary: {
+    backgroundColor: '#FF8C00', borderRadius: Radius.lg, paddingVertical: 18,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    shadowColor: '#FF8C00', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.4, shadowRadius: 16, elevation: 8,
+  },
+  btnPrimaryText: { color: '#0D0D0D', fontWeight: '900', fontSize: 15, letterSpacing: 1, textTransform: 'uppercase' },
+  btnSecondary: { borderRadius: Radius.lg, paddingVertical: 18, alignItems: 'center', borderWidth: 1 },
+  btnSecondaryText: { fontWeight: '900', fontSize: 14 },
+  btnGhost: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12 },
+  btnGhostText: { fontWeight: '900', fontSize: 13 },
+  footer: { fontSize: 9, textAlign: 'center', paddingBottom: Spacing.md },
+});
+
+
+========================================
+FILE: app\(auth)\login.tsx
+========================================
+import React, { useState, useCallback } from 'react';
+import {
+  View, Text, TouchableOpacity, StyleSheet, TextInput,
+  SafeAreaView, KeyboardAvoidingView, Platform, ScrollView,
+  ActivityIndicator, Alert
+} from 'react-native';
+import { router } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '../../src/context/AuthContext';
+import { Colors, Spacing, Radius } from '../../src/types/theme';
+
+export default function LoginScreen() {
+  const { login } = useAuth();
+  const [identifier, setIdentifier] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPass, setShowPass] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async () => {
+    if (!identifier.trim() || !password.trim()) {
+      Alert.alert('Champs requis', 'Veuillez remplir tous les champs.');
+      return;
+    }
+    setLoading(true);
+    const result = await login(identifier.trim(), password);
+    setLoading(false);
+    if (result.success) {
+      router.replace('/');
+    } else {
+      Alert.alert('Erreur de connexion', result.message || 'Identifiants invalides.');
+    }
+  };
+
+  const onChangeIdentifier = useCallback((v: string) => setIdentifier(v), []);
+  const onChangePassword = useCallback((v: string) => setPassword(v), []);
+  const togglePass = useCallback(() => setShowPass(p => !p), []);
+
+  return (
+    <SafeAreaView style={styles.safe}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          keyboardShouldPersistTaps="always"
+          keyboardDismissMode="none"
+        >
+          <TouchableOpacity style={styles.back} onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={24} color={Colors.white} />
+          </TouchableOpacity>
+
+          <View style={styles.logoRow}>
+            <View style={styles.logoBox}>
+              <Text style={styles.logoLetter}>R</Text>
+            </View>
+            <Text style={styles.logoText}>RidnGo</Text>
+          </View>
+
+          <Text style={styles.title}>Bon retour 👋</Text>
+          <Text style={styles.subtitle}>Connectez-vous pour continuer</Text>
+
+          <View style={styles.form}>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Email / Téléphone / Pseudo</Text>
+              <View style={styles.inputRow}>
+                <Ionicons name="person" size={18} color={Colors.textMuted} style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Votre identifiant"
+                  placeholderTextColor={Colors.textMuted}
+                  value={identifier}
+                  onChangeText={onChangeIdentifier}
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                  autoCorrect={false}
+                  blurOnSubmit={false}
+                  returnKeyType="next"
+                />
+              </View>
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Mot de passe</Text>
+              <View style={styles.inputRow}>
+                <Ionicons name="lock-closed" size={18} color={Colors.textMuted} style={styles.inputIcon} />
+                <TextInput
+                  style={[styles.input, { flex: 1 }]}
+                  placeholder="Votre mot de passe"
+                  placeholderTextColor={Colors.textMuted}
+                  value={password}
+                  onChangeText={onChangePassword}
+                  secureTextEntry={!showPass}
+                  autoCorrect={false}
+                  blurOnSubmit={false}
+                  returnKeyType="done"
+                  onSubmitEditing={handleLogin}
+                />
+                <TouchableOpacity onPress={togglePass} style={styles.eyeBtn}>
+                  <Ionicons name={showPass ? 'eye-off' : 'eye'} size={18} color={Colors.textMuted} />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <TouchableOpacity style={styles.forgotRow}>
+              <Text style={styles.forgotText}>Mot de passe oublié ?</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.btnPrimary, loading && { opacity: 0.6 }]}
+              onPress={handleLogin}
+              disabled={loading}
+              activeOpacity={0.85}
+            >
+              {loading ? (
+                <ActivityIndicator color={Colors.dark} />
+              ) : (
+                <>
+                  <Text style={styles.btnText}>Se connecter</Text>
+                  <Ionicons name="arrow-forward" size={20} color={Colors.dark} />
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>Pas encore de compte ? </Text>
+            <TouchableOpacity onPress={() => router.push({ pathname: '/(auth)/register', params: { role: 'passenger' } })}>
+              <Text style={styles.footerLink}>S'inscrire</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: Colors.dark },
+  scroll: { flexGrow: 1, paddingHorizontal: Spacing.lg, paddingTop: Spacing.md, paddingBottom: Spacing.xl },
+  back: { marginBottom: Spacing.lg },
+  logoRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: Spacing.xl },
+  logoBox: { width: 36, height: 36, backgroundColor: Colors.orange, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  logoLetter: { color: Colors.white, fontWeight: '900', fontSize: 18, fontStyle: 'italic' },
+  logoText: { color: Colors.white, fontWeight: '900', fontSize: 20 },
+  title: { color: Colors.white, fontWeight: '900', fontSize: 32, letterSpacing: -0.5, marginBottom: 6 },
+  subtitle: { color: Colors.textSecondary, fontSize: 15, marginBottom: Spacing.xl },
+  form: { gap: Spacing.md },
+  inputGroup: { gap: 6 },
+  label: { color: Colors.textMuted, fontWeight: '900', fontSize: 10, letterSpacing: 2, textTransform: 'uppercase' },
+  inputRow: {
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: Colors.input, borderRadius: Radius.md,
+    borderWidth: 1, borderColor: Colors.inputBorder, paddingHorizontal: Spacing.md,
+  },
+  inputIcon: { marginRight: 8 },
+  input: { flex: 1, color: Colors.white, fontWeight: '700', fontSize: 15, paddingVertical: 16 },
+  eyeBtn: { padding: 4 },
+  forgotRow: { alignItems: 'flex-end' },
+  forgotText: { color: Colors.orange, fontWeight: '700', fontSize: 13 },
+  btnPrimary: {
+    backgroundColor: Colors.orange, borderRadius: Radius.lg, paddingVertical: 18,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: Spacing.sm,
+    shadowColor: Colors.orange, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.4, shadowRadius: 16, elevation: 8,
+  },
+  btnText: { color: Colors.dark, fontWeight: '900', fontSize: 15, textTransform: 'uppercase', letterSpacing: 1 },
+  footer: { flexDirection: 'row', justifyContent: 'center', marginTop: Spacing.xl },
+  footerText: { color: Colors.textSecondary, fontSize: 14 },
+  footerLink: { color: Colors.orange, fontWeight: '900', fontSize: 14 },
+});
+
+
+========================================
+FILE: app\(auth)\register.tsx
+========================================
+import React, { useState, useCallback } from 'react';
+import {
+  View, Text, TouchableOpacity, StyleSheet, TextInput,
+  SafeAreaView, KeyboardAvoidingView, Platform, ScrollView,
+  ActivityIndicator, Alert, Image
+} from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
+import { authService } from '../../src/services/auth';
+import { Colors, Spacing, Radius } from '../../src/types/theme';
+
+export default function RegisterScreen() {
+  const { role } = useLocalSearchParams<{ role: string }>();
+  const isDriver = role === 'driver';
+
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [phone, setPhone] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [photo, setPhoto] = useState<any>(null);
+  const [showPass, setShowPass] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const pickPhoto = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true, aspect: [1, 1], quality: 0.7,
+    });
+    if (!result.canceled) setPhoto(result.assets[0]);
+  };
+
+  const handleRegister = async () => {
+    if (!username || !email || !password || !firstName || !lastName || !phone) {
+      Alert.alert('Champs requis', 'Veuillez remplir tous les champs obligatoires.');
+      return;
+    }
+    if (password !== confirmPassword) {
+      Alert.alert('Erreur', 'Les mots de passe ne correspondent pas.');
+      return;
+    }
+    if (password.length < 6) {
+      Alert.alert('Erreur', 'Le mot de passe doit faire au moins 6 caractères.');
+      return;
+    }
+    setLoading(true);
+    try {
+      const result = await authService.register({
+        username, email, password, phone, firstName, lastName,
+        role: isDriver ? 'RIDE_AND_GO_DRIVER' : 'RIDE_AND_GO_PASSENGER',
+        photo,
+      });
+      if (result.success) {
+        if (isDriver) router.replace('/(driver)/onboarding');
+        else router.replace('/(passenger)/ride');
+      } else {
+        Alert.alert('Erreur inscription', result.message || "Erreur lors de l'inscription.");
+      }
+    } catch (e: any) {
+      Alert.alert('Erreur', e?.message || "Une erreur inattendue s'est produite.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <SafeAreaView style={styles.safe}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          keyboardShouldPersistTaps="always"
+          keyboardDismissMode="none"
+        >
+          <TouchableOpacity style={styles.back} onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={24} color={Colors.white} />
+          </TouchableOpacity>
+
+          <View style={styles.header}>
+            <View style={[styles.badge, isDriver && styles.badgeDriver]}>
+              <Ionicons name={isDriver ? 'car-sport' : 'person'} size={14} color={isDriver ? Colors.dark : Colors.white} />
+              <Text style={[styles.badgeText, isDriver && { color: Colors.dark }]}>
+                {isDriver ? 'CHAUFFEUR' : 'PASSAGER'}
+              </Text>
+            </View>
+            <Text style={styles.title}>Créer un compte</Text>
+            <Text style={styles.subtitle}>
+              {isDriver ? 'Rejoignez le réseau de chauffeurs RidnGo' : 'Réservez vos courses facilement'}
+            </Text>
+          </View>
+
+          {/* Photo picker */}
+          <TouchableOpacity style={styles.photoPicker} onPress={pickPhoto}>
+            {photo ? (
+              <Image source={{ uri: photo.uri }} style={styles.photoPreview} />
+            ) : (
+              <View style={styles.photoPlaceholder}>
+                <Ionicons name="camera" size={28} color={Colors.textMuted} />
+                <Text style={styles.photoText}>Photo (optionnel)</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+
+          {/* Fields */}
+          <View style={styles.form}>
+            <View style={styles.row2}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.label}>Prénom *</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Jean"
+                  placeholderTextColor={Colors.textMuted}
+                  value={firstName}
+                  onChangeText={setFirstName}
+                  autoCorrect={false}
+                  blurOnSubmit={false}
+                  returnKeyType="next"
+                />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.label}>Nom *</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Dupont"
+                  placeholderTextColor={Colors.textMuted}
+                  value={lastName}
+                  onChangeText={setLastName}
+                  autoCorrect={false}
+                  blurOnSubmit={false}
+                  returnKeyType="next"
+                />
+              </View>
+            </View>
+
+            <View>
+              <Text style={styles.label}>Pseudo *</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="jean.dupont"
+                placeholderTextColor={Colors.textMuted}
+                value={username}
+                onChangeText={setUsername}
+                autoCapitalize="none"
+                autoCorrect={false}
+                blurOnSubmit={false}
+                returnKeyType="next"
+              />
+            </View>
+
+            <View>
+              <Text style={styles.label}>Email *</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="jean@email.com"
+                placeholderTextColor={Colors.textMuted}
+                value={email}
+                onChangeText={setEmail}
+                autoCapitalize="none"
+                keyboardType="email-address"
+                autoCorrect={false}
+                blurOnSubmit={false}
+                returnKeyType="next"
+              />
+            </View>
+
+            <View>
+              <Text style={styles.label}>Téléphone *</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="+237 6XX XXX XXX"
+                placeholderTextColor={Colors.textMuted}
+                value={phone}
+                onChangeText={setPhone}
+                keyboardType="phone-pad"
+                blurOnSubmit={false}
+                returnKeyType="next"
+              />
+            </View>
+
+            <View>
+              <Text style={styles.label}>Mot de passe *</Text>
+              <View style={styles.inputRow}>
+                <TextInput
+                  style={[styles.input, { flex: 1, borderWidth: 0 }]}
+                  placeholder="Min. 6 caractères"
+                  placeholderTextColor={Colors.textMuted}
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!showPass}
+                  autoCorrect={false}
+                  blurOnSubmit={false}
+                  returnKeyType="next"
+                />
+                <TouchableOpacity onPress={() => setShowPass(p => !p)} style={styles.eyeBtn}>
+                  <Ionicons name={showPass ? 'eye-off' : 'eye'} size={18} color={Colors.textMuted} />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <View>
+              <Text style={styles.label}>Confirmer *</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Répétez le mot de passe"
+                placeholderTextColor={Colors.textMuted}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                secureTextEntry={!showPass}
+                autoCorrect={false}
+                returnKeyType="done"
+                onSubmitEditing={handleRegister}
+              />
+            </View>
+          </View>
+
+          <TouchableOpacity
+            style={[styles.btnPrimary, loading && { opacity: 0.6 }]}
+            onPress={handleRegister}
+            disabled={loading}
+            activeOpacity={0.85}
+          >
+            {loading ? (
+              <ActivityIndicator color={Colors.dark} />
+            ) : (
+              <>
+                <Text style={styles.btnText}>Créer mon compte</Text>
+                <Ionicons name="arrow-forward" size={20} color={Colors.dark} />
+              </>
+            )}
+          </TouchableOpacity>
+
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>Déjà un compte ? </Text>
+            <TouchableOpacity onPress={() => router.push('/(auth)/login')}>
+              <Text style={styles.footerLink}>Se connecter</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: Colors.dark },
+  scroll: { flexGrow: 1, paddingHorizontal: Spacing.lg, paddingTop: Spacing.md, paddingBottom: Spacing.xl },
+  back: { marginBottom: Spacing.md },
+  header: { marginBottom: Spacing.lg, gap: 8 },
+  badge: {
+    flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start',
+    backgroundColor: 'rgba(255,255,255,0.1)', paddingHorizontal: 12, paddingVertical: 6,
+    borderRadius: Radius.full,
+  },
+  badgeDriver: { backgroundColor: Colors.orange },
+  badgeText: { color: Colors.white, fontWeight: '900', fontSize: 10, letterSpacing: 2 },
+  title: { color: Colors.white, fontWeight: '900', fontSize: 28, letterSpacing: -0.5 },
+  subtitle: { color: Colors.textSecondary, fontSize: 14 },
+  photoPicker: { alignSelf: 'center', marginBottom: Spacing.lg },
+  photoPreview: { width: 80, height: 80, borderRadius: 40, borderWidth: 3, borderColor: Colors.orange },
+  photoPlaceholder: {
+    width: 80, height: 80, borderRadius: 40, backgroundColor: Colors.input,
+    borderWidth: 2, borderColor: Colors.inputBorder, borderStyle: 'dashed',
+    alignItems: 'center', justifyContent: 'center', gap: 4,
+  },
+  photoText: { color: Colors.textMuted, fontSize: 9, fontWeight: '700' },
+  form: { gap: Spacing.md, marginBottom: Spacing.lg },
+  row2: { flexDirection: 'row', gap: Spacing.sm },
+  label: { color: Colors.textMuted, fontWeight: '900', fontSize: 10, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 6 },
+  inputRow: {
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: Colors.input, borderRadius: Radius.md,
+    borderWidth: 1, borderColor: Colors.inputBorder, paddingHorizontal: Spacing.md,
+  },
+  input: {
+    backgroundColor: Colors.input, borderRadius: Radius.md,
+    borderWidth: 1, borderColor: Colors.inputBorder,
+    paddingHorizontal: Spacing.md, paddingVertical: 14,
+    color: Colors.white, fontWeight: '700', fontSize: 14,
+  },
+  eyeBtn: { padding: 8 },
+  btnPrimary: {
+    backgroundColor: Colors.orange, borderRadius: Radius.lg, paddingVertical: 18,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    shadowColor: Colors.orange, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.4, shadowRadius: 16, elevation: 8,
+    marginBottom: Spacing.lg,
+  },
+  btnText: { color: Colors.dark, fontWeight: '900', fontSize: 15, textTransform: 'uppercase', letterSpacing: 1 },
+  footer: { flexDirection: 'row', justifyContent: 'center' },
+  footerText: { color: Colors.textSecondary, fontSize: 14 },
+  footerLink: { color: Colors.orange, fontWeight: '900', fontSize: 14 },
+});
+
+
+========================================
+FILE: app\(auth)\_layout.tsx
+========================================
+import { Stack } from 'expo-router';
+
+export default function AuthLayout() {
+  return (
+    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#0D0D0D' } }}>
+      <Stack.Screen name="landing" />
+      <Stack.Screen name="login" />
+      <Stack.Screen name="register" />
+    </Stack>
+  );
+}
+
+
+========================================
+FILE: app\(driver)\offers\[id].tsx
+========================================
+
+
+========================================
+FILE: app\(driver)\ride\[id].tsx
+========================================
+
+
+========================================
+FILE: app\(driver)\dashboard.tsx
+========================================
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import {
+  View, Text, StyleSheet, SafeAreaView, FlatList,
+  TouchableOpacity, ActivityIndicator, RefreshControl, Alert
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import { useAuth } from '../../src/context/AuthContext';
+import { rideService } from '../../src/services/rideService';
+import { driverService } from '../../src/services/userService';
+import { Colors, Spacing, Radius } from '../../src/types/theme';
+import { OfferResponse } from '../../src/types/api';
+import * as ExpoLocation from 'expo-location';
+
+export default function DriverDashboard() {
+  const { user, logout } = useAuth();
+  const [profile, setProfile] = useState<any>(null);
+  const [offers, setOffers] = useState<OfferResponse[]>([]);
+  const [currentRide, setCurrentRide] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [isOnline, setIsOnline] = useState(false);
+  const [toggling, setToggling] = useState(false);
+  const [sortBy, setSortBy] = useState<'recent' | 'price_desc' | 'price_asc'>('recent');
+
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const geoRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    loadData();
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+      if (geoRef.current) clearInterval(geoRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (pollRef.current) clearInterval(pollRef.current);
+    if (geoRef.current) clearInterval(geoRef.current);
+    if (isOnline) {
+      fetchOffers();
+      pollRef.current = setInterval(fetchOffers, 5000);
+      startGPS();
+    } else {
+      setOffers([]);
+    }
+  }, [isOnline]);
+
+  const loadData = async () => {
+    try {
+      const [profileRes, ride] = await Promise.all([
+        driverService.getDriverProfile(),
+        rideService.getCurrentRide(),
+      ]);
+      setProfile(profileRes);
+      setIsOnline(profileRes?.driver?.isOnline || false);
+      setCurrentRide(ride);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchOffers = async () => {
+    try {
+      const data = await rideService.getAvailableOffers(0, 100);
+      const unique = Array.from(new Map(data.map((o: OfferResponse) => [o.id, o])).values()) as OfferResponse[];
+      setOffers(unique);
+    } catch { /* silent */ }
+  };
+
+  const startGPS = async () => {
+    const { status } = await ExpoLocation.requestForegroundPermissionsAsync();
+    if (status !== 'granted') return;
+    geoRef.current = setInterval(async () => {
+      const pos = await ExpoLocation.getCurrentPositionAsync({ accuracy: ExpoLocation.Accuracy.Balanced });
+      rideService.updateLocation(pos.coords.latitude, pos.coords.longitude).catch(() => {});
+    }, 3000);
+  };
+
+  const toggleOnline = async () => {
+    setToggling(true);
+    try {
+      const next = !isOnline;
+      await driverService.toggleOnlineStatus(next);
+      setIsOnline(next);
+    } catch {
+      Alert.alert('Erreur', 'Impossible de changer de statut.');
+    } finally {
+      setToggling(false);
+    }
+  };
+
+  const sortedOffers = useMemo(() => {
+    const list = [...offers];
+    if (sortBy === 'price_desc') return list.sort((a, b) => (b.price || 0) - (a.price || 0));
+    if (sortBy === 'price_asc') return list.sort((a, b) => (a.price || 0) - (b.price || 0));
+    return list.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+  }, [offers, sortBy]);
+
+  if (loading) return (
+    <SafeAreaView style={styles.safe}>
+      <View style={styles.centered}>
+        <ActivityIndicator color={Colors.orange} size="large" />
+        <Text style={styles.loadingText}>Chargement du radar...</Text>
+      </View>
+    </SafeAreaView>
+  );
+
+  const driverName = profile?.user?.firstName || user?.name?.split(' ')[0] || 'Chauffeur';
+  const balance = profile?.wallet?.balance ?? 0;
+  const vehicle = profile?.vehicle;
+
+  return (
+    <SafeAreaView style={styles.safe}>
+      <FlatList
+        data={sortedOffers}
+        keyExtractor={item => item.id}
+        contentContainerStyle={styles.list}
+        refreshControl={
+          <RefreshControl refreshing={false} onRefresh={loadData} tintColor={Colors.orange} />
+        }
+        ListHeaderComponent={() => (
+          <View style={styles.header}>
+            {/* Top bar */}
+            <View style={styles.topBar}>
+              <View style={styles.logoRow}>
+                <View style={styles.logoBox}><Text style={styles.logoLetter}>R</Text></View>
+                <View>
+                  <Text style={styles.logoText}>RidnGo</Text>
+                  <Text style={styles.driverTag}>CHAUFFEUR</Text>
+                </View>
+              </View>
+              <TouchableOpacity onPress={() => { logout(); router.replace('/'); }} style={styles.logoutBtn}>
+                <Ionicons name="log-out-outline" size={22} color={Colors.textMuted} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Active ride banner */}
+            {currentRide && (
+              <TouchableOpacity
+                style={styles.activeBanner}
+                onPress={() => router.push(`/(driver)/ride/${currentRide.id}`)}
+              >
+                <View style={styles.activeBannerLeft}>
+                  <View style={styles.navPulse}>
+                    <Ionicons name="navigate" size={20} color={Colors.white} />
+                  </View>
+                  <View>
+                    <Text style={styles.activeBannerTag}>COURSE ACTIVE</Text>
+                    <Text style={styles.activeBannerText}>
+                      {currentRide.state === 'CREATED' ? 'Client en attente' : 'Trajet en cours'}
+                    </Text>
+                  </View>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={Colors.white} />
+              </TouchableOpacity>
+            )}
+
+            {/* Identity + Wallet cards */}
+            <View style={styles.cardsRow}>
+              {/* Identity card */}
+              <View style={[styles.card, { flex: 2 }]}>
+                <View style={styles.avatarRow}>
+                  <View style={styles.avatar}>
+                    <Text style={styles.avatarText}>{driverName[0]}</Text>
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.driverName} numberOfLines={1}>{driverName}</Text>
+                    {vehicle && (
+                      <Text style={styles.vehicleInfo} numberOfLines={1}>
+                        {vehicle.makeName || vehicle.vehicleMakeName} {vehicle.modelName || vehicle.vehicleModelName}
+                      </Text>
+                    )}
+                  </View>
+                </View>
+
+                {/* Online toggle */}
+                <TouchableOpacity
+                  style={[styles.toggleBtn, isOnline && styles.toggleBtnOnline]}
+                  onPress={toggleOnline}
+                  disabled={toggling}
+                >
+                  {toggling
+                    ? <ActivityIndicator size="small" color={isOnline ? Colors.dark : Colors.white} />
+                    : <>
+                      <View style={[styles.toggleDot, isOnline && styles.toggleDotOnline]} />
+                      <Text style={[styles.toggleText, isOnline && styles.toggleTextOnline]}>
+                        {isOnline ? 'EN LIGNE' : 'HORS LIGNE'}
+                      </Text>
+                    </>
+                  }
+                </TouchableOpacity>
+              </View>
+
+              {/* Wallet card */}
+              <View style={[styles.card, { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 6 }]}>
+                <View style={styles.walletIcon}>
+                  <Ionicons name="wallet" size={20} color={Colors.orange} />
+                </View>
+                <Text style={styles.walletBalance}>{balance.toLocaleString()}</Text>
+                <Text style={styles.walletCurrency}>FCFA</Text>
+              </View>
+            </View>
+
+            {/* Radar header + sort */}
+            <View style={styles.radarHeader}>
+              <View>
+                <Text style={styles.radarTitle}>
+                  {isOnline ? `${sortedOffers.length} demandes` : 'Radar désactivé'}
+                </Text>
+                <Text style={styles.radarSub}>
+                  {isOnline ? 'Passez en ligne pour voir les offres' : 'Activez le radar pour voir les courses'}
+                </Text>
+              </View>
+              {isOnline && (
+                <TouchableOpacity
+                  style={styles.sortBtn}
+                  onPress={() => {
+                    if (sortBy === 'recent') setSortBy('price_desc');
+                    else if (sortBy === 'price_desc') setSortBy('price_asc');
+                    else setSortBy('recent');
+                  }}
+                >
+                  <Ionicons name="funnel" size={14} color={Colors.orange} />
+                  <Text style={styles.sortText}>
+                    {sortBy === 'recent' ? 'Récent' : sortBy === 'price_desc' ? 'Prix ↓' : 'Prix ↑'}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+        )}
+        ListEmptyComponent={
+          isOnline ? (
+            <View style={styles.emptyRadar}>
+              <Ionicons name="radio" size={48} color={Colors.textMuted} />
+              <Text style={styles.emptyText}>Radar actif — en attente de courses</Text>
+            </View>
+          ) : (
+            <View style={styles.emptyRadar}>
+              <Ionicons name="radio-button-off" size={48} color={Colors.textMuted} />
+              <Text style={styles.emptyText}>Activez le radar pour recevoir des courses</Text>
+            </View>
+          )
+        }
+        renderItem={({ item }: { item: OfferResponse }) => (
+          <TouchableOpacity
+            style={styles.offerCard}
+            onPress={() => router.push(`/(driver)/offers/${item.id}`)}
+            activeOpacity={0.8}
+          >
+            <View style={styles.offerTop}>
+              <View style={styles.offerRoute}>
+                <View style={styles.routeRow}>
+                  <View style={styles.dotOrange} />
+                  <Text style={styles.routeText} numberOfLines={1}>{item.startPoint}</Text>
+                </View>
+                <View style={styles.routeLine} />
+                <View style={styles.routeRow}>
+                  <View style={styles.dotWhite} />
+                  <Text style={styles.routeText} numberOfLines={1}>{item.endPoint}</Text>
+                </View>
+              </View>
+              <View style={styles.offerPriceBox}>
+                <Text style={styles.offerPrice}>{item.price?.toLocaleString()}</Text>
+                <Text style={styles.offerPriceCurrency}>FCFA</Text>
+              </View>
+            </View>
+            <View style={styles.offerFooter}>
+              {item.distance && (
+                <View style={styles.offerMeta}>
+                  <Ionicons name="navigate" size={12} color={Colors.textMuted} />
+                  <Text style={styles.offerMetaText}>{item.distance.toFixed(1)} km</Text>
+                </View>
+              )}
+              {item.createdAt && (
+                <Text style={styles.offerTime}>
+                  {new Date(item.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                </Text>
+              )}
+              <View style={styles.applyBtn}>
+                <Text style={styles.applyText}>Voir</Text>
+                <Ionicons name="chevron-forward" size={14} color={Colors.orange} />
+              </View>
+            </View>
+          </TouchableOpacity>
+        )}
+      />
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: Colors.dark },
+  centered: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 },
+  loadingText: { color: Colors.textMuted, fontWeight: '700', fontSize: 11, textTransform: 'uppercase', letterSpacing: 1 },
+  list: { padding: Spacing.lg, gap: Spacing.md, paddingBottom: 100 },
+  header: { gap: Spacing.md, marginBottom: Spacing.sm },
+  topBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  logoRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  logoBox: { width: 38, height: 38, backgroundColor: Colors.orange, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  logoLetter: { color: Colors.white, fontWeight: '900', fontSize: 18, fontStyle: 'italic' },
+  logoText: { color: Colors.white, fontWeight: '900', fontSize: 18 },
+  driverTag: { color: Colors.orange, fontWeight: '900', fontSize: 9, letterSpacing: 2 },
+  logoutBtn: { padding: 6 },
+
+  activeBanner: {
+    backgroundColor: Colors.orange, borderRadius: Radius.lg, padding: Spacing.md,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    shadowColor: Colors.orange, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, elevation: 6,
+  },
+  activeBannerLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  navPulse: { width: 40, height: 40, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' },
+  activeBannerTag: { color: 'rgba(255,255,255,0.7)', fontWeight: '900', fontSize: 9, letterSpacing: 2 },
+  activeBannerText: { color: Colors.white, fontWeight: '900', fontSize: 13 },
+
+  cardsRow: { flexDirection: 'row', gap: Spacing.sm },
+  card: { backgroundColor: Colors.card, borderRadius: Radius.xl, padding: Spacing.md, borderWidth: 1, borderColor: Colors.cardBorder, gap: 10 },
+  avatarRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  avatar: { width: 44, height: 44, borderRadius: 14, backgroundColor: Colors.orange, alignItems: 'center', justifyContent: 'center' },
+  avatarText: { color: Colors.white, fontWeight: '900', fontSize: 18 },
+  driverName: { color: Colors.white, fontWeight: '900', fontSize: 14 },
+  vehicleInfo: { color: Colors.textMuted, fontSize: 11, fontWeight: '600' },
+
+  toggleBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    backgroundColor: 'rgba(255,255,255,0.07)', borderRadius: Radius.full,
+    paddingHorizontal: 14, paddingVertical: 8, alignSelf: 'flex-start',
+  },
+  toggleBtnOnline: { backgroundColor: Colors.greenBg },
+  toggleDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: Colors.textMuted },
+  toggleDotOnline: { backgroundColor: Colors.green },
+  toggleText: { color: Colors.textMuted, fontWeight: '900', fontSize: 10, letterSpacing: 1 },
+  toggleTextOnline: { color: Colors.green },
+
+  walletIcon: { width: 40, height: 40, borderRadius: 12, backgroundColor: Colors.orangeBg, alignItems: 'center', justifyContent: 'center' },
+  walletBalance: { color: Colors.white, fontWeight: '900', fontSize: 20, letterSpacing: -0.5 },
+  walletCurrency: { color: Colors.textMuted, fontWeight: '900', fontSize: 9, letterSpacing: 2 },
+
+  radarHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 8, borderTopWidth: 1, borderTopColor: Colors.cardBorder },
+  radarTitle: { color: Colors.white, fontWeight: '900', fontSize: 18 },
+  radarSub: { color: Colors.textMuted, fontWeight: '600', fontSize: 12 },
+  sortBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: Colors.orangeBg, paddingHorizontal: 12, paddingVertical: 7, borderRadius: Radius.full },
+  sortText: { color: Colors.orange, fontWeight: '900', fontSize: 11 },
+
+  emptyRadar: { alignItems: 'center', gap: 12, paddingVertical: 60 },
+  emptyText: { color: Colors.textMuted, fontWeight: '700', fontSize: 13, textAlign: 'center' },
+
+  offerCard: { backgroundColor: Colors.card, borderRadius: Radius.xl, padding: Spacing.md, borderWidth: 1, borderColor: Colors.cardBorder, gap: 12 },
+  offerTop: { flexDirection: 'row', gap: 12 },
+  offerRoute: { flex: 1, gap: 4 },
+  routeRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  routeLine: { width: 2, height: 10, backgroundColor: Colors.cardBorder, marginLeft: 3 },
+  dotOrange: { width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.orange },
+  dotWhite: { width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.white },
+  routeText: { flex: 1, color: Colors.white, fontWeight: '600', fontSize: 13 },
+  offerPriceBox: { alignItems: 'flex-end', justifyContent: 'center' },
+  offerPrice: { color: Colors.orange, fontWeight: '900', fontSize: 20, fontStyle: 'italic' },
+  offerPriceCurrency: { color: Colors.textMuted, fontWeight: '900', fontSize: 9, letterSpacing: 1 },
+  offerFooter: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  offerMeta: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  offerMetaText: { color: Colors.textMuted, fontWeight: '700', fontSize: 12 },
+  offerTime: { flex: 1, color: Colors.textMuted, fontWeight: '600', fontSize: 12 },
+  applyBtn: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  applyText: { color: Colors.orange, fontWeight: '900', fontSize: 12 },
+});
+
+
+========================================
+FILE: app\(driver)\onboarding.tsx
+========================================
+import React, { useState, useEffect } from 'react';
+import {
+  View, Text, StyleSheet, SafeAreaView, ScrollView,
+  TouchableOpacity, TextInput, ActivityIndicator, Alert, Switch
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import { vehicleApi } from '../../src/services/api';
+import api from '../../src/services/api';
+import { Colors, Spacing, Radius } from '../../src/types/theme';
+import * as SecureStore from 'expo-secure-store';
+import * as Linking from 'expo-linking';
+
+type Step = 0 | 1 | 2;
+
+const COMPLIANCE_URL = 'https://ugate-dev.yowyob.com/compliance';
+const FALLBACKS = {
+  makes: ['Toyota', 'Mercedes', 'Hyundai', 'Honda', 'Nissan', 'Renault', 'Peugeot'],
+  models: ['Corolla', 'Yaris', 'Camry', 'Clio', '208', 'Tucson', 'Elantra'],
+  transmissions: ['Manual', 'Automatic'],
+  fuels: ['Petrol', 'Diesel', 'Hybrid'],
+  types: ['Sedan', 'SUV', 'Hatchback', 'Van'],
+  sizes: ['Small', 'Medium', 'Large'],
+  manufacturers: ['Toyota', 'Mercedes-Benz', 'Hyundai'],
+};
+
+export default function DriverOnboarding() {
+  const [step, setStep] = useState<Step>(0);
+  const [loading, setLoading] = useState(false);
+  const [driverId, setDriverId] = useState<string | null>(null);
+
+  const [form, setForm] = useState({
+    licenseNumber: '',
+    registrationNumber: '',
+    vehicleSerialNumber: '',
+    makeName: 'Toyota', modelName: 'Corolla',
+    typeName: 'Sedan', sizeName: 'Medium',
+    fuelTypeName: 'Petrol', transmissionType: 'Manual',
+    manufacturerName: 'Toyota',
+    totalSeatNumber: '4', tankCapacity: '50',
+    luggageMaxCapacity: '400', mileageAtStart: '0',
+    mileageSinceCommissioning: '0', vehicleAgeAtStart: '2',
+    averageFuelConsumptionPerKm: '0.08',
+    airConditioned: false, wifi: false, comfortable: true,
+  });
+
+  useEffect(() => {
+    const raw_fn = async () => {
+      const raw = await SecureStore.getItemAsync('user');
+      if (raw) setDriverId(JSON.parse(raw).id);
+    };
+    raw_fn();
+
+    // Check if returning from UGate compliance
+    const sub = Linking.addEventListener('url', ({ url }) => {
+      if (url.includes('action=verify')) {
+        setLoading(true);
+        // Check compliance status
+        setTimeout(() => { setLoading(false); setStep(2); }, 2000);
+      }
+    });
+    return () => sub.remove();
+  }, []);
+
+  const set = (key: string, val: any) => setForm(f => ({ ...f, [key]: val }));
+
+  const handleSubmitVehicle = async () => {
+    if (!form.licenseNumber || !form.registrationNumber) {
+      Alert.alert('Requis', 'Numéro de permis et immatriculation sont obligatoires.');
+      return;
+    }
+    setLoading(true);
+    try {
+      await api.post('/api/v1/users/driver', {
+        licenseNumber: form.licenseNumber,
+        vehicle: {
+          registrationNumber: form.registrationNumber,
+          vehicleSerialNumber: form.vehicleSerialNumber,
+          makeName: form.makeName,
+          modelName: form.modelName,
+          typeName: form.typeName,
+          sizeName: form.sizeName,
+          fuelTypeName: form.fuelTypeName,
+          transmissionType: form.transmissionType,
+          manufacturerName: form.manufacturerName,
+          totalSeatNumber: parseInt(form.totalSeatNumber),
+          tankCapacity: parseInt(form.tankCapacity),
+          luggageMaxCapacity: parseInt(form.luggageMaxCapacity),
+          mileageAtStart: parseInt(form.mileageAtStart),
+          mileageSinceCommissioning: parseInt(form.mileageSinceCommissioning),
+          vehicleAgeAtStart: parseInt(form.vehicleAgeAtStart),
+          averageFuelConsumptionPerKm: parseFloat(form.averageFuelConsumptionPerKm),
+          airConditioned: form.airConditioned,
+          wifi: form.wifi,
+          comfortable: form.comfortable,
+        },
+      });
+      setStep(1);
+    } catch (e: any) {
+      Alert.alert('Erreur', e.response?.data?.message || "Impossible d'enregistrer le véhicule.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleConnectSyndicate = async () => {
+    if (!driverId) return;
+    const callback = Linking.createURL('/onboarding?action=verify');
+    const url = `${COMPLIANCE_URL}/connect?driverId=${driverId}&redirectUrl=${encodeURIComponent(callback)}`;
+    await Linking.openURL(url);
+  };
+
+  const InputField = ({ label, field, keyboard = 'default', placeholder = '' }: any) => (
+    <View style={styles.inputGroup}>
+      <Text style={styles.label}>{label}</Text>
+      <TextInput
+        style={styles.input}
+        placeholder={placeholder || label}
+        placeholderTextColor={Colors.textMuted}
+        value={String(form[field as keyof typeof form])}
+        onChangeText={v => set(field, v)}
+        keyboardType={keyboard}
+      />
+    </View>
+  );
+
+  const SelectField = ({ label, field, options }: any) => (
+    <View style={styles.inputGroup}>
+      <Text style={styles.label}>{label}</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 4 }}>
+        <View style={styles.optionRow}>
+          {options.map((opt: string) => (
+            <TouchableOpacity
+              key={opt}
+              style={[styles.optionBtn, (form as any)[field] === opt && styles.optionBtnActive]}
+              onPress={() => set(field, opt)}
+            >
+              <Text style={[(form as any)[field] === opt ? styles.optionTextActive : styles.optionText]}>{opt}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </ScrollView>
+    </View>
+  );
+
+  return (
+    <SafeAreaView style={styles.safe}>
+      {/* Progress indicator */}
+      <View style={styles.progress}>
+        {[0, 1, 2].map(i => (
+          <View key={i} style={[styles.progressDot, step >= i && styles.progressDotActive]} />
+        ))}
+      </View>
+
+      {/* Step 0 — Vehicle */}
+      {step === 0 && (
+        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+          <View style={styles.stepHeader}>
+            <View style={styles.stepIcon}>
+              <Ionicons name="car" size={32} color={Colors.orange} />
+            </View>
+            <Text style={styles.stepTitle}>Enregistrez votre véhicule</Text>
+            <Text style={styles.stepSub}>Ces informations seront vérifiées avant activation</Text>
+          </View>
+
+          <View style={styles.form}>
+            <InputField label="N° Permis de conduire *" field="licenseNumber" placeholder="Ex: CM-12345" />
+            <InputField label="N° Immatriculation *" field="registrationNumber" placeholder="Ex: LT-482-XY" />
+            <InputField label="N° Série du véhicule" field="vehicleSerialNumber" />
+            <SelectField label="Marque" field="makeName" options={FALLBACKS.makes} />
+            <SelectField label="Modèle" field="modelName" options={FALLBACKS.models} />
+            <SelectField label="Type" field="typeName" options={FALLBACKS.types} />
+            <SelectField label="Taille" field="sizeName" options={FALLBACKS.sizes} />
+            <SelectField label="Carburant" field="fuelTypeName" options={FALLBACKS.fuels} />
+            <SelectField label="Transmission" field="transmissionType" options={FALLBACKS.transmissions} />
+            <InputField label="Nombre de sièges" field="totalSeatNumber" keyboard="numeric" />
+            <InputField label="Capacité réservoir (L)" field="tankCapacity" keyboard="numeric" />
+            <InputField label="Âge du véhicule (ans)" field="vehicleAgeAtStart" keyboard="numeric" />
+
+            {/* Comfort options */}
+            <Text style={styles.sectionLabel}>OPTIONS DU VÉHICULE</Text>
+            {(['airConditioned', 'wifi', 'comfortable'] as const).map(key => (
+              <View key={key} style={styles.switchRow}>
+                <Text style={styles.switchLabel}>
+                  {key === 'airConditioned' ? 'Climatisation' : key === 'wifi' ? 'Wi-Fi' : 'Confortable'}
+                </Text>
+                <Switch
+                  value={form[key]}
+                  onValueChange={v => set(key, v)}
+                  thumbColor={form[key] ? Colors.orange : Colors.textMuted}
+                  trackColor={{ false: Colors.input, true: Colors.orangeBg }}
+                />
+              </View>
+            ))}
+          </View>
+
+          <TouchableOpacity
+            style={[styles.btnPrimary, loading && { opacity: 0.6 }]}
+            onPress={handleSubmitVehicle}
+            disabled={loading}
+          >
+            {loading ? <ActivityIndicator color={Colors.dark} /> : (
+              <>
+                <Text style={styles.btnText}>Continuer</Text>
+                <Ionicons name="arrow-forward" size={20} color={Colors.dark} />
+              </>
+            )}
+          </TouchableOpacity>
+        </ScrollView>
+      )}
+
+      {/* Step 1 — Syndicate */}
+      {step === 1 && (
+        <ScrollView contentContainerStyle={styles.scroll}>
+          <View style={styles.stepHeader}>
+            <View style={styles.stepIcon}>
+              <Ionicons name="shield-checkmark" size={32} color={Colors.orange} />
+            </View>
+            <Text style={styles.stepTitle}>Vérification Syndicale</Text>
+            <Text style={styles.stepSub}>
+              Connectez-vous à UGate pour confirmer votre adhésion au syndicat des transporteurs.
+            </Text>
+          </View>
+
+          <View style={styles.infoBox}>
+            <Ionicons name="information-circle" size={20} color={Colors.orange} />
+            <Text style={styles.infoText}>
+              Cette étape est obligatoire au Cameroun pour exercer en toute légalité et garantir la sécurité du réseau RidnGo.
+            </Text>
+          </View>
+
+          {loading ? (
+            <View style={styles.loadingBox}>
+              <ActivityIndicator color={Colors.orange} size="large" />
+              <Text style={styles.loadingText}>Validation de conformité en cours...</Text>
+            </View>
+          ) : (
+            <>
+              <TouchableOpacity style={styles.btnPrimary} onPress={handleConnectSyndicate}>
+                <Ionicons name="open" size={20} color={Colors.dark} />
+                <Text style={styles.btnText}>Ouvrir UGate Compliance</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.btnSkip} onPress={() => setStep(2)}>
+                <Text style={styles.btnSkipText}>Passer (tester sans syndicat)</Text>
+              </TouchableOpacity>
+            </>
+          )}
+        </ScrollView>
+      )}
+
+      {/* Step 2 — Done */}
+      {step === 2 && (
+        <View style={styles.doneContainer}>
+          <View style={styles.doneIcon}>
+            <Ionicons name="checkmark" size={56} color={Colors.white} />
+          </View>
+          <Text style={styles.doneTitle}>Félicitations !</Text>
+          <Text style={styles.doneSub}>
+            Votre profil est complet. Vous pouvez maintenant recevoir des courses sur RidnGo.
+          </Text>
+          <TouchableOpacity
+            style={styles.btnPrimary}
+            onPress={() => router.replace('/(driver)/dashboard')}
+          >
+            <Ionicons name="radio" size={20} color={Colors.dark} />
+            <Text style={styles.btnText}>Accéder au Radar</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: Colors.dark },
+  progress: { flexDirection: 'row', justifyContent: 'center', gap: 8, paddingTop: Spacing.lg, paddingBottom: Spacing.sm },
+  progressDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.cardBorder },
+  progressDotActive: { backgroundColor: Colors.orange, width: 24 },
+  scroll: { flexGrow: 1, padding: Spacing.lg, gap: Spacing.md, paddingBottom: 60 },
+
+  stepHeader: { alignItems: 'center', gap: 12, marginBottom: Spacing.sm },
+  stepIcon: {
+    width: 70, height: 70, borderRadius: 22, backgroundColor: Colors.orangeBg,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  stepTitle: { color: Colors.white, fontWeight: '900', fontSize: 24, textAlign: 'center', letterSpacing: -0.5 },
+  stepSub: { color: Colors.textSecondary, fontSize: 14, textAlign: 'center', lineHeight: 20 },
+
+  form: { gap: Spacing.md },
+  inputGroup: { gap: 6 },
+  label: { color: Colors.textMuted, fontWeight: '900', fontSize: 10, letterSpacing: 2, textTransform: 'uppercase' },
+  input: {
+    backgroundColor: Colors.input, borderRadius: Radius.md,
+    borderWidth: 1, borderColor: Colors.inputBorder,
+    padding: 14, color: Colors.white, fontWeight: '700', fontSize: 14,
+  },
+  optionRow: { flexDirection: 'row', gap: 8 },
+  optionBtn: {
+    paddingHorizontal: 14, paddingVertical: 8, borderRadius: Radius.full,
+    backgroundColor: Colors.input, borderWidth: 1, borderColor: Colors.inputBorder,
+  },
+  optionBtnActive: { backgroundColor: Colors.orangeBg, borderColor: Colors.orange },
+  optionText: { color: Colors.textMuted, fontWeight: '700', fontSize: 13 },
+  optionTextActive: { color: Colors.orange, fontWeight: '900', fontSize: 13 },
+
+  sectionLabel: { color: Colors.textMuted, fontWeight: '900', fontSize: 10, letterSpacing: 3, marginTop: 8 },
+  switchRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    backgroundColor: Colors.input, borderRadius: Radius.md, padding: Spacing.md,
+  },
+  switchLabel: { color: Colors.white, fontWeight: '700', fontSize: 14 },
+
+  btnPrimary: {
+    backgroundColor: Colors.orange, borderRadius: Radius.lg, paddingVertical: 18,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10,
+    shadowColor: Colors.orange, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, elevation: 6,
+    marginTop: Spacing.sm,
+  },
+  btnText: { color: Colors.dark, fontWeight: '900', fontSize: 14, textTransform: 'uppercase', letterSpacing: 1 },
+  btnSkip: { alignItems: 'center', padding: Spacing.md },
+  btnSkipText: { color: Colors.textMuted, fontWeight: '700', fontSize: 13 },
+
+  infoBox: {
+    flexDirection: 'row', alignItems: 'flex-start', gap: 10,
+    backgroundColor: Colors.orangeBg, borderRadius: Radius.lg, padding: Spacing.md,
+  },
+  infoText: { flex: 1, color: Colors.textSecondary, fontSize: 13, lineHeight: 18 },
+
+  loadingBox: { alignItems: 'center', gap: 16, padding: Spacing.xl },
+  loadingText: { color: Colors.textMuted, fontWeight: '700', fontSize: 12, textTransform: 'uppercase', letterSpacing: 1 },
+
+  doneContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: Spacing.xl, gap: Spacing.lg },
+  doneIcon: {
+    width: 100, height: 100, borderRadius: 50, backgroundColor: Colors.green,
+    alignItems: 'center', justifyContent: 'center',
+    shadowColor: Colors.green, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.5, elevation: 10,
+  },
+  doneTitle: { color: Colors.white, fontWeight: '900', fontSize: 32, letterSpacing: -0.5 },
+  doneSub: { color: Colors.textSecondary, fontSize: 15, textAlign: 'center', lineHeight: 22 },
+});
+
+
+========================================
+FILE: app\(driver)\profile.tsx
+========================================
+import React, { useState, useEffect } from 'react';
+import {
+  View, Text, StyleSheet, SafeAreaView, ScrollView,
+  TouchableOpacity, Alert, ActivityIndicator
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import { useAuth } from '../../src/context/AuthContext';
+import { driverService } from '../../src/services/userService';
+import { Colors, Spacing, Radius } from '../../src/types/theme';
+
+export default function DriverProfileScreen() {
+  const { user, logout } = useAuth();
+  const [profile, setProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => { loadProfile(); }, []);
+
+  const loadProfile = async () => {
+    try {
+      const data = await driverService.getDriverProfile();
+      setProfile(data);
+    } catch { /* ignore */ }
+    finally { setLoading(false); }
+  };
+
+  const handleLogout = () => {
+    Alert.alert('Déconnexion', 'Voulez-vous vous déconnecter ?', [
+      { text: 'Annuler' },
+      { text: 'Déconnexion', style: 'destructive', onPress: async () => { await logout(); router.replace('/'); } }
+    ]);
+  };
+
+  const vehicle = profile?.vehicle;
+  const driver = profile?.driver;
+
+  return (
+    <SafeAreaView style={styles.safe}>
+      <ScrollView contentContainerStyle={styles.scroll}>
+        {/* Hero */}
+        <View style={styles.heroCard}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>{user?.name?.[0] || '?'}</Text>
+          </View>
+          <Text style={styles.name}>{user?.name}</Text>
+          <Text style={styles.email}>{user?.email}</Text>
+          <View style={styles.driverBadge}>
+            <Ionicons name="car-sport" size={12} color={Colors.dark} />
+            <Text style={styles.driverBadgeText}>CHAUFFEUR CERTIFIÉ</Text>
+          </View>
+          {driver?.isOnline !== undefined && (
+            <View style={[styles.onlineBadge, driver.isOnline ? styles.onlineBadgeGreen : styles.onlineBadgeGray]}>
+              <View style={[styles.onlineDot, driver.isOnline && styles.onlineDotGreen]} />
+              <Text style={[styles.onlineText, driver.isOnline && { color: Colors.green }]}>
+                {driver.isOnline ? 'EN LIGNE' : 'HORS LIGNE'}
+              </Text>
+            </View>
+          )}
+        </View>
+
+        {/* Vehicle info */}
+        {vehicle && (
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>MON VÉHICULE</Text>
+            <View style={styles.vehicleCard}>
+              <View style={styles.vehicleIcon}>
+                <Ionicons name="car" size={24} color={Colors.orange} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.vehicleName}>
+                  {vehicle.makeName || vehicle.vehicleMakeName} {vehicle.modelName || vehicle.vehicleModelName}
+                </Text>
+                <Text style={styles.vehiclePlate}>
+                  {vehicle.registrationNumber || 'Plaque non définie'}
+                </Text>
+              </View>
+            </View>
+            <View style={styles.vehicleDetails}>
+              {[
+                { icon: 'people', label: 'Sièges', val: vehicle.totalSeatNumber },
+                { icon: 'flash', label: 'Carburant', val: vehicle.fuelTypeName || vehicle.fuelTypeName_ },
+                { icon: 'settings', label: 'Transmission', val: vehicle.transmissionType || vehicle.transmissionTypeName },
+              ].map((item, i) => item.val && (
+                <View key={i} style={styles.detailChip}>
+                  <Ionicons name={item.icon as any} size={14} color={Colors.orange} />
+                  <Text style={styles.detailText}>{item.label}: {item.val}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* Wallet */}
+        {profile?.wallet && (
+          <View style={styles.walletCard}>
+            <View style={styles.walletLeft}>
+              <Ionicons name="wallet" size={20} color={Colors.orange} />
+              <Text style={styles.walletLabel}>Solde du portefeuille</Text>
+            </View>
+            <Text style={styles.walletBalance}>{profile.wallet.balance?.toLocaleString()} FCFA</Text>
+          </View>
+        )}
+
+        {/* Menu */}
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>COMPTE</Text>
+          <View style={styles.menuGroup}>
+            {[
+              { icon: 'car', label: "Modifier le véhicule", onPress: () => router.push('/(driver)/onboarding') },
+              { icon: 'notifications', label: 'Notifications', onPress: () => {} },
+              { icon: 'help-circle', label: 'Aide & Support', onPress: () => {} },
+              { icon: 'log-out', label: 'Déconnexion', onPress: handleLogout, danger: true },
+            ].map((item, i) => (
+              <TouchableOpacity key={i} style={styles.menuItem} onPress={item.onPress}>
+                <View style={[styles.menuIcon, item.danger && styles.menuIconDanger]}>
+                  <Ionicons name={item.icon as any} size={18} color={item.danger ? Colors.red : Colors.orange} />
+                </View>
+                <Text style={[styles.menuLabel, item.danger && { color: Colors.red }]}>{item.label}</Text>
+                <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        <Text style={styles.version}>RidnGo v1.0.0 — Yowyob Inc. Ltd.</Text>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: Colors.dark },
+  scroll: { padding: Spacing.lg, gap: Spacing.lg, paddingBottom: 100 },
+  heroCard: {
+    backgroundColor: Colors.card, borderRadius: Radius.xl, padding: Spacing.xl,
+    alignItems: 'center', gap: 8, borderWidth: 1, borderColor: Colors.cardBorder,
+  },
+  avatar: {
+    width: 80, height: 80, borderRadius: 40, backgroundColor: Colors.orange,
+    alignItems: 'center', justifyContent: 'center',
+    shadowColor: Colors.orange, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.4, elevation: 8,
+  },
+  avatarText: { color: Colors.white, fontWeight: '900', fontSize: 32 },
+  name: { color: Colors.white, fontWeight: '900', fontSize: 22 },
+  email: { color: Colors.textSecondary, fontSize: 13 },
+  driverBadge: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    backgroundColor: Colors.orange, paddingHorizontal: 12, paddingVertical: 6, borderRadius: Radius.full,
+  },
+  driverBadgeText: { color: Colors.dark, fontWeight: '900', fontSize: 10, letterSpacing: 1 },
+  onlineBadge: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    backgroundColor: Colors.input, paddingHorizontal: 12, paddingVertical: 6, borderRadius: Radius.full,
+  },
+  onlineBadgeGreen: { backgroundColor: Colors.greenBg },
+  onlineBadgeGray: {},
+  onlineDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: Colors.textMuted },
+  onlineDotGreen: { backgroundColor: Colors.green },
+  onlineText: { color: Colors.textMuted, fontWeight: '900', fontSize: 10, letterSpacing: 1 },
+  section: { gap: 8 },
+  sectionLabel: { color: Colors.textMuted, fontWeight: '900', fontSize: 10, letterSpacing: 3, paddingLeft: 4 },
+  vehicleCard: {
+    backgroundColor: Colors.card, borderRadius: Radius.lg, padding: Spacing.md,
+    flexDirection: 'row', alignItems: 'center', gap: 12,
+    borderWidth: 1, borderColor: Colors.cardBorder,
+  },
+  vehicleIcon: { width: 48, height: 48, borderRadius: 14, backgroundColor: Colors.orangeBg, alignItems: 'center', justifyContent: 'center' },
+  vehicleName: { color: Colors.white, fontWeight: '900', fontSize: 15 },
+  vehiclePlate: { color: Colors.textMuted, fontWeight: '700', fontSize: 13 },
+  vehicleDetails: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  detailChip: {
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    backgroundColor: Colors.input, paddingHorizontal: 10, paddingVertical: 6, borderRadius: Radius.full,
+  },
+  detailText: { color: Colors.textSecondary, fontSize: 12, fontWeight: '600' },
+  walletCard: {
+    backgroundColor: Colors.card, borderRadius: Radius.xl, padding: Spacing.lg,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    borderWidth: 1, borderColor: Colors.cardBorder,
+  },
+  walletLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  walletLabel: { color: Colors.white, fontWeight: '700', fontSize: 14 },
+  walletBalance: { color: Colors.orange, fontWeight: '900', fontSize: 20, fontStyle: 'italic' },
+  menuGroup: { backgroundColor: Colors.card, borderRadius: Radius.xl, borderWidth: 1, borderColor: Colors.cardBorder, overflow: 'hidden' },
+  menuItem: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: Spacing.md, borderBottomWidth: 1, borderBottomColor: Colors.cardBorder },
+  menuIcon: { width: 36, height: 36, borderRadius: 10, backgroundColor: Colors.orangeBg, alignItems: 'center', justifyContent: 'center' },
+  menuIconDanger: { backgroundColor: Colors.redBg },
+  menuLabel: { flex: 1, color: Colors.white, fontWeight: '700', fontSize: 14 },
+  version: { color: Colors.textMuted, fontSize: 11, textAlign: 'center', fontStyle: 'italic' },
+});
+
+
+========================================
+========================================
+import { Tabs } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { Colors } from '../../src/types/theme';
+
+export default function DriverLayout() {
+  return (
+    <Tabs
+      screenOptions={{
+        headerShown: false,
+        tabBarStyle: {
+          backgroundColor: '#141414',
+          borderTopColor: 'rgba(255,255,255,0.07)',
+          borderTopWidth: 1,
+          paddingBottom: 8,
+          paddingTop: 8,
+          height: 65,
+        },
+        tabBarActiveTintColor: Colors.orange,
+        tabBarInactiveTintColor: 'rgba(255,255,255,0.3)',
+        tabBarLabelStyle: { fontWeight: '900', fontSize: 10, letterSpacing: 0.5 },
+      }}
+    >
+      <Tabs.Screen
+        name="dashboard"
+        options={{
+          title: 'Radar',
+          tabBarIcon: ({ color, size }) => <Ionicons name="radio" size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="offers/[id]"
+        options={{
+          href: null, // hidden from tabs
+        }}
+      />
+      <Tabs.Screen
+        name="ride/[id]"
+        options={{
+          href: null, // hidden from tabs
+        }}
+      />
+      <Tabs.Screen
+        name="onboarding"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Profil',
+          tabBarIcon: ({ color, size }) => <Ionicons name="person" size={size} color={color} />,
+        }}
+      />
+    </Tabs>
+  );
+}
+
+
+========================================
+FILE: app\(passenger)\history.tsx
+========================================
+import React, { useState, useEffect } from 'react';
+import {
+  View, Text, StyleSheet, SafeAreaView, FlatList,
+  ActivityIndicator, TouchableOpacity, RefreshControl
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { rideService } from '../../src/services/rideService';
+import { Colors, Spacing, Radius } from '../../src/types/theme';
+import { RideResponse } from '../../src/types/api';
+
+export default function HistoryScreen() {
+  const [rides, setRides] = useState<RideResponse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => { load(); }, []);
+
+  const load = async () => {
+    try {
+      const data = await rideService.getMyHistory(0, 20);
+      setRides(Array.isArray(data) ? data : []);
+    } catch { setRides([]); }
+    finally { setLoading(false); setRefreshing(false); }
+  };
+
+  const onRefresh = () => { setRefreshing(true); load(); };
+
+  const RideCard = ({ item }: { item: RideResponse }) => (
+    <View style={styles.card}>
+      <View style={styles.cardTop}>
+        <View style={styles.avatar}>
+          <Ionicons name="person" size={20} color={Colors.white} />
+        </View>
+        <View style={styles.cardTopInfo}>
+          <Text style={styles.cardDate}>
+            {item.createdAt ? new Date(item.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Date inconnue'}
+          </Text>
+          <View style={[styles.stateBadge, item.state === 'COMPLETED' ? styles.badgeGreen : styles.badgeRed]}>
+            <Text style={[styles.stateText, item.state === 'COMPLETED' ? styles.textGreen : styles.textRed]}>
+              {item.state}
+            </Text>
+          </View>
+        </View>
+        <Text style={styles.price}>{item.price} F</Text>
+      </View>
+
+      <View style={styles.route}>
+        <View style={styles.routeRow}>
+          <View style={styles.dotOrange} />
+          <Text style={styles.routeText} numberOfLines={1}>{item.startPoint || '—'}</Text>
+        </View>
+        <View style={styles.routeLine} />
+        <View style={styles.routeRow}>
+          <View style={styles.dotWhite} />
+          <Text style={styles.routeText} numberOfLines={1}>{item.endPoint || '—'}</Text>
+        </View>
+      </View>
+
+      {item.distance != null && (
+        <View style={styles.footer}>
+          <Ionicons name="car" size={13} color={Colors.orange} />
+          <Text style={styles.footerText}>{item.distance.toFixed(1)} km</Text>
+        </View>
+      )}
+    </View>
+  );
+
+  if (loading) return (
+    <SafeAreaView style={styles.safe}>
+      <View style={styles.centered}>
+        <ActivityIndicator color={Colors.orange} size="large" />
+        <Text style={styles.loadingText}>Chargement...</Text>
+      </View>
+    </SafeAreaView>
+  );
+
+  return (
+    <SafeAreaView style={styles.safe}>
+      <View style={styles.pageHeader}>
+        <Text style={styles.pageTitle}>Mes Voyages</Text>
+        <Text style={styles.pageTag}>HISTORIQUE COMPLET</Text>
+      </View>
+
+      <FlatList
+        data={rides}
+        keyExtractor={(item, i) => (item.id || item.rideId || String(i))}
+        contentContainerStyle={styles.list}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.orange} />}
+        ListEmptyComponent={
+          <View style={styles.empty}>
+            <Ionicons name="calendar-outline" size={48} color={Colors.textMuted} />
+            <Text style={styles.emptyText}>Aucune course enregistrée</Text>
+          </View>
+        }
+        renderItem={({ item }) => <RideCard item={item} />}
+      />
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: Colors.dark },
+  centered: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 },
+  loadingText: { color: Colors.textMuted, fontWeight: '700', fontSize: 11, textTransform: 'uppercase', letterSpacing: 1 },
+  pageHeader: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.lg, paddingBottom: Spacing.md },
+  pageTitle: { color: Colors.white, fontWeight: '900', fontSize: 30, letterSpacing: -0.5, fontStyle: 'italic' },
+  pageTag: { color: Colors.textMuted, fontWeight: '900', fontSize: 10, letterSpacing: 3, marginTop: 2 },
+  list: { padding: Spacing.lg, gap: Spacing.md, paddingBottom: 100 },
+  card: {
+    backgroundColor: Colors.card, borderRadius: Radius.xl,
+    padding: Spacing.lg, borderWidth: 1, borderColor: Colors.cardBorder, gap: 12,
+  },
+  cardTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  avatar: { width: 42, height: 42, borderRadius: 14, backgroundColor: Colors.orange, alignItems: 'center', justifyContent: 'center' },
+  cardTopInfo: { flex: 1 },
+  cardDate: { color: Colors.white, fontWeight: '700', fontSize: 13 },
+  stateBadge: { alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 3, borderRadius: Radius.full, marginTop: 4 },
+  badgeGreen: { backgroundColor: Colors.greenBg },
+  badgeRed: { backgroundColor: Colors.redBg },
+  stateText: { fontWeight: '900', fontSize: 9, letterSpacing: 1 },
+  textGreen: { color: Colors.green },
+  textRed: { color: Colors.red },
+  price: { color: Colors.orange, fontWeight: '900', fontSize: 18, fontStyle: 'italic' },
+  route: { backgroundColor: Colors.input, borderRadius: Radius.md, padding: 12, gap: 4 },
+  routeRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  routeLine: { width: 2, height: 12, backgroundColor: Colors.cardBorder, marginLeft: 4 },
+  dotOrange: { width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.orange },
+  dotWhite: { width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.white },
+  routeText: { flex: 1, color: Colors.white, fontWeight: '600', fontSize: 13 },
+  footer: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  footerText: { color: Colors.textMuted, fontWeight: '700', fontSize: 12 },
+  empty: { alignItems: 'center', justifyContent: 'center', gap: 12, paddingTop: 80 },
+  emptyText: { color: Colors.textMuted, fontWeight: '700', fontSize: 14, fontStyle: 'italic' },
+});
+
+
+========================================
+FILE: app\(passenger)\profile.tsx
+========================================
+import React, { useState } from 'react';
+import {
+  View, Text, StyleSheet, SafeAreaView, ScrollView,
+  TouchableOpacity, TextInput, Alert, ActivityIndicator
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import { useAuth } from '../../src/context/AuthContext';
+import { userService } from '../../src/services/userService';
+import { Colors, Spacing, Radius } from '../../src/types/theme';
+
+export default function ProfileScreen() {
+  const { user, logout } = useAuth();
+  const [changingPass, setChangingPass] = useState(false);
+  const [showPassForm, setShowPassForm] = useState(false);
+  const [passData, setPassData] = useState({ current: '', next: '', confirm: '' });
+
+  const handleLogout = async () => {
+    Alert.alert('Déconnexion', 'Voulez-vous vous déconnecter ?', [
+      { text: 'Annuler' },
+      {
+        text: 'Déconnexion', style: 'destructive',
+        onPress: async () => { await logout(); router.replace('/'); }
+      }
+    ]);
+  };
+
+  const handleChangePassword = async () => {
+    if (!passData.current || !passData.next || !passData.confirm) {
+      Alert.alert('Erreur', 'Remplissez tous les champs'); return;
+    }
+    if (passData.next !== passData.confirm) {
+      Alert.alert('Erreur', 'Les mots de passe ne correspondent pas'); return;
+    }
+    setChangingPass(true);
+    try {
+      await userService.changePassword(passData.current, passData.next);
+      Alert.alert('✅', 'Mot de passe mis à jour');
+      setShowPassForm(false);
+      setPassData({ current: '', next: '', confirm: '' });
+    } catch {
+      Alert.alert('Erreur', 'Impossible de changer le mot de passe.');
+    } finally {
+      setChangingPass(false);
+    }
+  };
+
+  const MenuItem = ({ icon, label, onPress, danger = false }: any) => (
+    <TouchableOpacity style={styles.menuItem} onPress={onPress}>
+      <View style={[styles.menuIcon, danger && styles.menuIconDanger]}>
+        <Ionicons name={icon} size={20} color={danger ? Colors.red : Colors.orange} />
+      </View>
+      <Text style={[styles.menuLabel, danger && { color: Colors.red }]}>{label}</Text>
+      <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />
+    </TouchableOpacity>
+  );
+
+  return (
+    <SafeAreaView style={styles.safe}>
+      <ScrollView contentContainerStyle={styles.scroll}>
+        {/* Header */}
+        <View style={styles.heroCard}>
+          <View style={styles.avatarLarge}>
+            <Text style={styles.avatarText}>{user?.name?.[0] || '?'}</Text>
+          </View>
+          <Text style={styles.name}>{user?.name}</Text>
+          <Text style={styles.email}>{user?.email}</Text>
+          {user?.phone && <Text style={styles.phone}>{user.phone}</Text>}
+          <View style={styles.roleBadge}>
+            <Ionicons name="person" size={12} color={Colors.orange} />
+            <Text style={styles.roleText}>{user?.role}</Text>
+          </View>
+        </View>
+
+        {/* Menu items */}
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>COMPTE</Text>
+          <View style={styles.menuGroup}>
+            <MenuItem icon="key" label="Changer de mot de passe" onPress={() => setShowPassForm(!showPassForm)} />
+            <MenuItem icon="notifications" label="Notifications" onPress={() => {}} />
+            <MenuItem icon="shield-checkmark" label="Sécurité" onPress={() => {}} />
+          </View>
+        </View>
+
+        {/* Password form */}
+        {showPassForm && (
+          <View style={styles.passForm}>
+            {(['current', 'next', 'confirm'] as const).map((f, i) => (
+              <TextInput
+                key={f}
+                style={styles.passInput}
+                placeholder={['Mot de passe actuel', 'Nouveau mot de passe', 'Confirmer'][i]}
+                placeholderTextColor={Colors.textMuted}
+                value={passData[f]}
+                onChangeText={v => setPassData(p => ({ ...p, [f]: v }))}
+                secureTextEntry
+              />
+            ))}
+            <TouchableOpacity
+              style={[styles.btnPrimary, changingPass && { opacity: 0.6 }]}
+              onPress={handleChangePassword}
+              disabled={changingPass}
+            >
+              {changingPass
+                ? <ActivityIndicator color={Colors.dark} />
+                : <Text style={styles.btnText}>Mettre à jour</Text>
+              }
+            </TouchableOpacity>
+          </View>
+        )}
+
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>APPLICATION</Text>
+          <View style={styles.menuGroup}>
+            <MenuItem icon="help-circle" label="Aide & Support" onPress={() => {}} />
+            <MenuItem icon="document-text" label="Conditions d'utilisation" onPress={() => {}} />
+            <MenuItem icon="log-out" label="Déconnexion" onPress={handleLogout} danger />
+          </View>
+        </View>
+
+        <Text style={styles.version}>RidnGo v1.0.0 — Yowyob Inc. Ltd.</Text>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: Colors.dark },
+  scroll: { padding: Spacing.lg, gap: Spacing.lg, paddingBottom: 100 },
+  heroCard: {
+    backgroundColor: Colors.card, borderRadius: Radius.xl, padding: Spacing.xl,
+    alignItems: 'center', gap: 8, borderWidth: 1, borderColor: Colors.cardBorder,
+  },
+  avatarLarge: {
+    width: 80, height: 80, borderRadius: 40, backgroundColor: Colors.orange,
+    alignItems: 'center', justifyContent: 'center',
+    shadowColor: Colors.orange, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.4, elevation: 8,
+  },
+  avatarText: { color: Colors.white, fontWeight: '900', fontSize: 32 },
+  name: { color: Colors.white, fontWeight: '900', fontSize: 22, letterSpacing: -0.3 },
+  email: { color: Colors.textSecondary, fontSize: 13 },
+  phone: { color: Colors.textMuted, fontSize: 13 },
+  roleBadge: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    backgroundColor: Colors.orangeBg, paddingHorizontal: 12, paddingVertical: 6, borderRadius: Radius.full, marginTop: 4,
+  },
+  roleText: { color: Colors.orange, fontWeight: '900', fontSize: 11, letterSpacing: 1 },
+  section: { gap: 8 },
+  sectionLabel: { color: Colors.textMuted, fontWeight: '900', fontSize: 10, letterSpacing: 3, paddingLeft: 4 },
+  menuGroup: {
+    backgroundColor: Colors.card, borderRadius: Radius.xl,
+    borderWidth: 1, borderColor: Colors.cardBorder, overflow: 'hidden',
+  },
+  menuItem: {
+    flexDirection: 'row', alignItems: 'center', gap: 14,
+    padding: Spacing.md, borderBottomWidth: 1, borderBottomColor: Colors.cardBorder,
+  },
+  menuIcon: {
+    width: 36, height: 36, borderRadius: 10, backgroundColor: Colors.orangeBg,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  menuIconDanger: { backgroundColor: Colors.redBg },
+  menuLabel: { flex: 1, color: Colors.white, fontWeight: '700', fontSize: 14 },
+  passForm: {
+    backgroundColor: Colors.card, borderRadius: Radius.xl, padding: Spacing.lg,
+    gap: Spacing.md, borderWidth: 1, borderColor: Colors.cardBorder,
+  },
+  passInput: {
+    backgroundColor: Colors.input, borderRadius: Radius.md, padding: 14,
+    color: Colors.white, fontWeight: '700', fontSize: 14,
+    borderWidth: 1, borderColor: Colors.inputBorder,
+  },
+  btnPrimary: {
+    backgroundColor: Colors.orange, borderRadius: Radius.lg, paddingVertical: 16,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  btnText: { color: Colors.dark, fontWeight: '900', fontSize: 14, textTransform: 'uppercase', letterSpacing: 1 },
+  version: { color: Colors.textMuted, fontSize: 11, textAlign: 'center', fontStyle: 'italic' },
+});
+
+
+========================================
+FILE: app\(passenger)\ride.tsx
+========================================
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  View, Text, TouchableOpacity, StyleSheet, SafeAreaView,
+  ScrollView, ActivityIndicator, Alert, Animated, Modal,
+  TextInput, FlatList
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import { useAuth } from '../../src/context/AuthContext';
+import { rideService } from '../../src/services/rideService';
+import { LocationSearch } from '../../src/components/LocationSearch';
+import { Colors, Spacing, Radius } from '../../src/types/theme';
+import { Location, OfferResponse, Bid } from '../../src/types/api';
+
+type Step = 'search' | 'price' | 'searching' | 'active' | 'review';
+
+export default function RideScreen() {
+  const { user, logout } = useAuth();
+  const [step, setStep] = useState<Step>('search');
+  const [pickup, setPickup] = useState<Location | null>(null);
+  const [dest, setDest] = useState<Location | null>(null);
+  const [estimatedPrice, setEstimatedPrice] = useState(500);
+  const [price, setPrice] = useState(500);
+  const [loading, setLoading] = useState(false);
+  const [currentOffer, setCurrentOffer] = useState<OfferResponse | null>(null);
+  const [activeRideId, setActiveRideId] = useState<string | null>(null);
+  const [stars, setStars] = useState(5);
+  const [comment, setComment] = useState('');
+
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Check for existing active ride on mount
+  useEffect(() => {
+    checkExistingRide();
+    return () => { if (pollRef.current) clearInterval(pollRef.current); };
+  }, []);
+
+  const checkExistingRide = async () => {
+    const ride = await rideService.getCurrentPassengerRide();
+    if (ride) {
+      setActiveRideId(ride.id);
+      setStep('active');
+    }
+  };
+
+  const handleEstimate = async () => {
+    if (!pickup || !dest) return;
+    setLoading(true);
+    try {
+      const fare = await rideService.estimateFare(pickup.name, dest.name);
+      const p = fare.estimatedPrice || fare.price || 500;
+      setEstimatedPrice(p);
+      setPrice(p);
+      setStep('price');
+    } catch {
+      Alert.alert('Erreur', "Impossible d'estimer le prix. Veuillez réessayer.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePublishOffer = async () => {
+    if (!pickup || !dest) return;
+    setLoading(true);
+    try {
+      const offer = await rideService.createOffer({
+        startPoint: pickup.name,
+        endPoint: dest.name,
+        price,
+        startLat: pickup.lat,
+        startLon: pickup.lon,
+        endLat: dest.lat,
+        endLon: dest.lon,
+        passengerPhone: user?.phone,
+      });
+      setCurrentOffer(offer);
+      setStep('searching');
+      startPolling(offer.id);
+    } catch {
+      Alert.alert('Erreur', "Impossible de publier l'offre.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const startPolling = (offerId: string) => {
+    pollRef.current = setInterval(async () => {
+      try {
+        const updated = await rideService.getOfferBids(offerId);
+        setCurrentOffer(updated);
+        if (updated.state === 'VALIDATED') {
+          clearInterval(pollRef.current!);
+          const ride = await rideService.getRideByOffer(offerId);
+          setActiveRideId(ride.id);
+          setStep('active');
+        }
+      } catch (e) {
+        console.error('Polling error:', e);
+      }
+    }, 4000);
+  };
+
+  const handleSelectDriver = async (driverId: string) => {
+    if (!currentOffer) return;
+    setLoading(true);
+    try {
+      await rideService.selectDriver(currentOffer.id, driverId);
+      Alert.alert('✅ Chauffeur sélectionné', 'En attente de confirmation du chauffeur...');
+    } catch {
+      Alert.alert('Erreur', 'Impossible de sélectionner ce chauffeur.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCancelOffer = async () => {
+    Alert.alert('Annuler', 'Voulez-vous annuler la recherche ?', [
+      { text: 'Non' },
+      {
+        text: 'Oui, annuler', style: 'destructive', onPress: () => {
+          if (pollRef.current) clearInterval(pollRef.current);
+          setCurrentOffer(null);
+          setStep('search');
+        }
+      }
+    ]);
+  };
+
+  const handleFinishRide = async () => {
+    if (!activeRideId) return;
+    setLoading(true);
+    try {
+      await rideService.completeRide(activeRideId);
+      setStep('review');
+    } catch {
+      Alert.alert('Erreur', 'Impossible de terminer la course.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmitReview = async () => {
+    if (!activeRideId) return;
+    try {
+      await rideService.postReview(activeRideId, stars, comment);
+    } catch { /* ignore */ }
+    setStep('search');
+    setPickup(null);
+    setDest(null);
+    setCurrentOffer(null);
+    setActiveRideId(null);
+  };
+
+  return (
+    <SafeAreaView style={styles.safe}>
+      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.logoRow}>
+            <View style={styles.logoBox}><Text style={styles.logoLetter}>R</Text></View>
+            <Text style={styles.logoText}>RidnGo</Text>
+          </View>
+          <View style={styles.headerRight}>
+            <View style={styles.userBadge}>
+              <Ionicons name="person" size={14} color={Colors.orange} />
+              <Text style={styles.userName} numberOfLines={1}>{user?.name?.split(' ')[0]}</Text>
+            </View>
+            <TouchableOpacity onPress={() => { logout(); router.replace('/'); }} style={styles.logoutBtn}>
+              <Ionicons name="log-out-outline" size={20} color={Colors.textMuted} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* ===== STEP: SEARCH ===== */}
+        {step === 'search' && (
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Où allez-vous ?</Text>
+            <Text style={styles.cardSub}>Saisissez vos adresses pour obtenir une estimation</Text>
+            <View style={styles.inputsContainer}>
+              <View style={styles.inputLine}>
+                <View style={styles.dotOrange} />
+                <View style={{ flex: 1 }}>
+                  <LocationSearch
+                    placeholder="Lieu de départ"
+                    value={pickup?.name || ''}
+                    onSelect={setPickup}
+                    icon="navigate"
+                    showGPS
+                  />
+                </View>
+              </View>
+              <View style={styles.dashedLine} />
+              <View style={styles.inputLine}>
+                <View style={styles.dotWhite} />
+                <View style={{ flex: 1 }}>
+                  <LocationSearch
+                    placeholder="Destination finale"
+                    value={dest?.name || ''}
+                    onSelect={setDest}
+                    icon="location"
+                  />
+                </View>
+              </View>
+            </View>
+            <TouchableOpacity
+              style={[styles.btnPrimary, (!pickup || !dest || loading) && styles.btnDisabled]}
+              onPress={handleEstimate}
+              disabled={!pickup || !dest || loading}
+            >
+              {loading
+                ? <ActivityIndicator color={Colors.dark} />
+                : <><Text style={styles.btnText}>Voir les prix</Text><Ionicons name="arrow-forward" size={20} color={Colors.dark} /></>
+              }
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* ===== STEP: PRICE ===== */}
+        {step === 'price' && (
+          <View style={styles.card}>
+            <TouchableOpacity style={styles.backRow} onPress={() => setStep('search')}>
+              <Ionicons name="arrow-back" size={18} color={Colors.textMuted} />
+              <Text style={styles.backText}>Modifier l'itinéraire</Text>
+            </TouchableOpacity>
+
+            {/* Trip summary */}
+            <View style={styles.tripSummary}>
+              <View style={styles.tripRow}>
+                <View style={styles.dotOrange} />
+                <Text style={styles.tripText} numberOfLines={1}>{pickup?.name.split(',')[0]}</Text>
+              </View>
+              <View style={styles.tripArrow}><Ionicons name="arrow-down" size={14} color={Colors.textMuted} /></View>
+              <View style={styles.tripRow}>
+                <View style={styles.dotWhite} />
+                <Text style={styles.tripText} numberOfLines={1}>{dest?.name.split(',')[0]}</Text>
+              </View>
+            </View>
+
+            <Text style={styles.sectionTag}>ESTIMATION CONSEILLÉE</Text>
+            <Text style={styles.bigPrice}>{price} <Text style={styles.priceUnit}>F</Text></Text>
+            <Text style={styles.priceHint}>Vous pouvez ajuster ce montant</Text>
+
+            <View style={styles.priceControl}>
+              <TouchableOpacity
+                style={styles.priceBtnMinus}
+                onPress={() => setPrice(p => Math.max(100, p - 50))}
+              >
+                <Ionicons name="remove" size={24} color={Colors.white} />
+              </TouchableOpacity>
+              <Text style={styles.priceDisplay}>{price} F</Text>
+              <TouchableOpacity
+                style={styles.priceBtnPlus}
+                onPress={() => setPrice(p => p + 50)}
+              >
+                <Ionicons name="add" size={24} color={Colors.dark} />
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity
+              style={[styles.btnPrimary, loading && styles.btnDisabled]}
+              onPress={handlePublishOffer}
+              disabled={loading}
+            >
+              {loading
+                ? <ActivityIndicator color={Colors.dark} />
+                : <><Text style={styles.btnText}>Publier la demande</Text><Ionicons name="radio" size={20} color={Colors.dark} /></>
+              }
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* ===== STEP: SEARCHING ===== */}
+        {step === 'searching' && (
+          <View style={styles.card}>
+            <View style={styles.searchingHeader}>
+              <View style={styles.pulseDot} />
+              <View style={styles.pulseDot2} />
+              <Text style={styles.searchingLabel}>Recherche en cours...</Text>
+              <Text style={styles.priceTag}>{price} F</Text>
+            </View>
+
+            {/* Trip mini summary */}
+            {pickup && dest && (
+              <View style={styles.miniSummary}>
+                <Ionicons name="navigate" size={12} color={Colors.orange} />
+                <Text style={styles.miniText} numberOfLines={1}>{pickup.name.split(',')[0]}</Text>
+                <Ionicons name="arrow-forward" size={12} color={Colors.textMuted} />
+                <Text style={styles.miniText} numberOfLines={1}>{dest.name.split(',')[0]}</Text>
+              </View>
+            )}
+
+            {/* Drivers list */}
+            {!currentOffer?.proposals?.length ? (
+              <View style={styles.emptyRadar}>
+                <ActivityIndicator color={Colors.orange} size="large" />
+                <Text style={styles.emptyText}>Radar actif — en attente de chauffeurs</Text>
+              </View>
+            ) : (
+              <FlatList
+                data={currentOffer.proposals}
+                keyExtractor={item => item.id || item.driverId}
+                scrollEnabled={false}
+                renderItem={({ item }: { item: Bid }) => (
+                  <TouchableOpacity
+                    style={styles.driverCard}
+                    onPress={() => handleSelectDriver(item.driverId)}
+                  >
+                    <View style={styles.driverAvatar}>
+                      <Text style={styles.driverAvatarText}>{item.driverName?.[0] || '?'}</Text>
+                    </View>
+                    <View style={styles.driverInfo}>
+                      <Text style={styles.driverName}>{item.driverName}</Text>
+                      <Text style={styles.driverMeta}>
+                        {item.brand || 'Véhicule'} • {item.eta ? `${item.eta} min` : '~5 min'} •{' '}
+                        <Ionicons name="star" size={11} color={Colors.orange} /> {item.rating?.toFixed(1) || '4.8'}
+                      </Text>
+                    </View>
+                    <View style={styles.selectBtn}>
+                      <Text style={styles.selectBtnText}>Go</Text>
+                    </View>
+                  </TouchableOpacity>
+                )}
+              />
+            )}
+
+            <TouchableOpacity style={styles.cancelBtn} onPress={handleCancelOffer}>
+              <Text style={styles.cancelText}>Annuler la recherche</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* ===== STEP: ACTIVE RIDE ===== */}
+        {step === 'active' && (
+          <View style={styles.card}>
+            <View style={styles.activeHeader}>
+              <Ionicons name="checkmark-circle" size={28} color={Colors.green} />
+              <View>
+                <Text style={styles.activeTitle}>Course Acceptée !</Text>
+                <Text style={styles.activeSub}>Votre chauffeur est en route</Text>
+              </View>
+            </View>
+
+            <View style={styles.rideInfo}>
+              <View style={styles.rideInfoRow}>
+                <Text style={styles.rideInfoLabel}>STATUT</Text>
+                <View style={styles.statusBadge}>
+                  <View style={styles.statusDot} />
+                  <Text style={styles.statusText}>En cours</Text>
+                </View>
+              </View>
+              {pickup && dest && (
+                <>
+                  <View style={styles.divider} />
+                  <View style={styles.tripMini}>
+                    <View style={styles.tripRow}>
+                      <View style={styles.dotOrange} />
+                      <Text style={styles.tripText} numberOfLines={1}>{pickup.name.split(',')[0]}</Text>
+                    </View>
+                    <View style={styles.tripArrow}><Ionicons name="arrow-down" size={14} color={Colors.textMuted} /></View>
+                    <View style={styles.tripRow}>
+                      <View style={styles.dotWhite} />
+                      <Text style={styles.tripText} numberOfLines={1}>{dest.name.split(',')[0]}</Text>
+                    </View>
+                  </View>
+                </>
+              )}
+            </View>
+
+            <TouchableOpacity
+              style={[styles.btnPrimary, loading && styles.btnDisabled]}
+              onPress={handleFinishRide}
+              disabled={loading}
+            >
+              {loading
+                ? <ActivityIndicator color={Colors.dark} />
+                : <Text style={styles.btnText}>Simuler "Arrivée"</Text>
+              }
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* ===== STEP: REVIEW ===== */}
+        {step === 'review' && (
+          <View style={styles.card}>
+            <View style={styles.reviewHeader}>
+              <View style={styles.reviewIcon}>
+                <Ionicons name="checkmark" size={40} color={Colors.white} />
+              </View>
+              <Text style={styles.reviewTitle}>Vous êtes arrivé !</Text>
+              <Text style={styles.reviewSub}>Notez votre chauffeur</Text>
+            </View>
+
+            <View style={styles.starsRow}>
+              {[1, 2, 3, 4, 5].map(s => (
+                <TouchableOpacity key={s} onPress={() => setStars(s)}>
+                  <Ionicons name={s <= stars ? 'star' : 'star-outline'} size={36} color={Colors.orange} />
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <TextInput
+              style={styles.commentInput}
+              placeholder="Laissez un commentaire (optionnel)"
+              placeholderTextColor={Colors.textMuted}
+              value={comment}
+              onChangeText={setComment}
+              multiline
+              numberOfLines={3}
+            />
+
+            <TouchableOpacity style={styles.btnPrimary} onPress={handleSubmitReview}>
+              <Text style={styles.btnText}>Terminer</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: Colors.dark },
+  scroll: { flexGrow: 1, padding: Spacing.lg, paddingBottom: 100 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.xl },
+  logoRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  logoBox: { width: 36, height: 36, backgroundColor: Colors.orange, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  logoLetter: { color: Colors.white, fontWeight: '900', fontSize: 18, fontStyle: 'italic' },
+  logoText: { color: Colors.white, fontWeight: '900', fontSize: 20 },
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  userBadge: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    backgroundColor: Colors.orangeBg, paddingHorizontal: 12, paddingVertical: 6, borderRadius: Radius.full,
+    maxWidth: 120,
+  },
+  userName: { color: Colors.orange, fontWeight: '900', fontSize: 12 },
+  logoutBtn: { padding: 6 },
+
+  card: {
+    backgroundColor: Colors.card, borderRadius: Radius.xl,
+    padding: Spacing.lg, borderWidth: 1, borderColor: Colors.cardBorder,
+    gap: Spacing.md,
+  },
+  cardTitle: { color: Colors.white, fontWeight: '900', fontSize: 26, letterSpacing: -0.5 },
+  cardSub: { color: Colors.textSecondary, fontSize: 13 },
+
+  inputsContainer: { gap: 4 },
+  inputLine: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  dotOrange: { width: 10, height: 10, borderRadius: 5, backgroundColor: Colors.orange },
+  dotWhite: { width: 10, height: 10, borderRadius: 5, backgroundColor: Colors.white },
+  dashedLine: { width: 2, height: 16, backgroundColor: Colors.cardBorder, marginLeft: 4 },
+
+  btnPrimary: {
+    backgroundColor: Colors.orange, borderRadius: Radius.lg, paddingVertical: 18,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    shadowColor: Colors.orange, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.35, shadowRadius: 12, elevation: 6,
+  },
+  btnDisabled: { opacity: 0.5 },
+  btnText: { color: Colors.dark, fontWeight: '900', fontSize: 14, textTransform: 'uppercase', letterSpacing: 1 },
+
+  backRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  backText: { color: Colors.textMuted, fontWeight: '700', fontSize: 12 },
+
+  tripSummary: { backgroundColor: Colors.input, borderRadius: Radius.md, padding: Spacing.md, gap: 4 },
+  tripRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  tripArrow: { paddingLeft: 5 },
+  tripText: { flex: 1, color: Colors.white, fontWeight: '600', fontSize: 13 },
+
+  sectionTag: { color: Colors.orange, fontWeight: '900', fontSize: 10, letterSpacing: 3, textTransform: 'uppercase' },
+  bigPrice: { color: Colors.white, fontWeight: '900', fontSize: 56, letterSpacing: -2, textAlign: 'center' },
+  priceUnit: { fontSize: 22, color: Colors.textMuted },
+  priceHint: { color: Colors.textMuted, fontSize: 11, textAlign: 'center', fontWeight: '700' },
+
+  priceControl: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    backgroundColor: Colors.input, borderRadius: Radius.xl, padding: 8,
+  },
+  priceBtnMinus: {
+    width: 56, height: 56, backgroundColor: Colors.darkCard,
+    borderRadius: Radius.md, alignItems: 'center', justifyContent: 'center',
+  },
+  priceBtnPlus: {
+    width: 56, height: 56, backgroundColor: Colors.orange,
+    borderRadius: Radius.md, alignItems: 'center', justifyContent: 'center',
+  },
+  priceDisplay: { color: Colors.white, fontWeight: '900', fontSize: 20 },
+
+  searchingHeader: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: Colors.cardBorder },
+  pulseDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: Colors.orange },
+  pulseDot2: { position: 'absolute', width: 10, height: 10, borderRadius: 5, backgroundColor: Colors.orange, opacity: 0.4 },
+  searchingLabel: { flex: 1, color: Colors.white, fontWeight: '900', fontSize: 13, textTransform: 'uppercase', letterSpacing: 1 },
+  priceTag: { color: Colors.orange, fontWeight: '900', fontSize: 16 },
+
+  miniSummary: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    backgroundColor: Colors.input, padding: 10, borderRadius: Radius.md,
+  },
+  miniText: { flex: 1, color: Colors.textSecondary, fontSize: 12, fontWeight: '600' },
+
+  emptyRadar: { alignItems: 'center', gap: 12, paddingVertical: Spacing.xl },
+  emptyText: { color: Colors.textMuted, fontWeight: '700', fontSize: 12, textTransform: 'uppercase', letterSpacing: 1 },
+
+  driverCard: {
+    flexDirection: 'row', alignItems: 'center', gap: 12,
+    backgroundColor: Colors.input, borderRadius: Radius.md, padding: Spacing.md,
+    marginBottom: 8,
+  },
+  driverAvatar: {
+    width: 44, height: 44, borderRadius: 14, backgroundColor: Colors.orange,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  driverAvatarText: { color: Colors.dark, fontWeight: '900', fontSize: 18 },
+  driverInfo: { flex: 1 },
+  driverName: { color: Colors.white, fontWeight: '900', fontSize: 14 },
+  driverMeta: { color: Colors.textMuted, fontWeight: '600', fontSize: 12 },
+  selectBtn: {
+    backgroundColor: Colors.orange, paddingHorizontal: 16, paddingVertical: 8,
+    borderRadius: Radius.md,
+  },
+  selectBtnText: { color: Colors.dark, fontWeight: '900', fontSize: 13 },
+
+  cancelBtn: { alignItems: 'center', paddingVertical: 8 },
+  cancelText: { color: Colors.red, fontWeight: '900', fontSize: 13, textTransform: 'uppercase', letterSpacing: 1 },
+
+  activeHeader: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: Colors.greenBg, borderRadius: Radius.md, padding: Spacing.md },
+  activeTitle: { color: Colors.green, fontWeight: '900', fontSize: 16 },
+  activeSub: { color: Colors.textMuted, fontSize: 13 },
+
+  rideInfo: { backgroundColor: Colors.input, borderRadius: Radius.md, padding: Spacing.md },
+  rideInfoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  rideInfoLabel: { color: Colors.textMuted, fontWeight: '900', fontSize: 10, letterSpacing: 2 },
+  statusBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: Colors.greenBg, paddingHorizontal: 10, paddingVertical: 5, borderRadius: Radius.full },
+  statusDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: Colors.green },
+  statusText: { color: Colors.green, fontWeight: '900', fontSize: 11 },
+  divider: { height: 1, backgroundColor: Colors.cardBorder, marginVertical: 10 },
+  tripMini: { gap: 4 },
+
+  reviewHeader: { alignItems: 'center', gap: 12 },
+  reviewIcon: {
+    width: 80, height: 80, borderRadius: 40, backgroundColor: Colors.green,
+    alignItems: 'center', justifyContent: 'center',
+    shadowColor: Colors.green, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.5, elevation: 8,
+  },
+  reviewTitle: { color: Colors.white, fontWeight: '900', fontSize: 28, letterSpacing: -0.5 },
+  reviewSub: { color: Colors.textSecondary, fontSize: 14 },
+  starsRow: { flexDirection: 'row', justifyContent: 'center', gap: 8 },
+  commentInput: {
+    backgroundColor: Colors.input, borderRadius: Radius.md, padding: Spacing.md,
+    color: Colors.white, fontWeight: '600', fontSize: 14, minHeight: 80, textAlignVertical: 'top',
+    borderWidth: 1, borderColor: Colors.inputBorder,
+  },
+});
+
+
+========================================
+FILE: app\(passenger)\_layout.tsx
+========================================
+import { Tabs } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { Colors } from '../../src/types/theme';
+
+export default function PassengerLayout() {
+  return (
+    <Tabs
+      screenOptions={{
+        headerShown: false,
+        tabBarStyle: {
+          backgroundColor: '#141414',
+          borderTopColor: 'rgba(255,255,255,0.07)',
+          borderTopWidth: 1,
+          paddingBottom: 8,
+          paddingTop: 8,
+          height: 65,
+        },
+        tabBarActiveTintColor: Colors.orange,
+        tabBarInactiveTintColor: 'rgba(255,255,255,0.3)',
+        tabBarLabelStyle: { fontWeight: '900', fontSize: 10, letterSpacing: 0.5 },
+      }}
+    >
+      <Tabs.Screen
+        name="ride"
+        options={{
+          title: 'Commander',
+          tabBarIcon: ({ color, size }) => <Ionicons name="car" size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="history"
+        options={{
+          title: 'Mes courses',
+          tabBarIcon: ({ color, size }) => <Ionicons name="time" size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Profil',
+          tabBarIcon: ({ color, size }) => <Ionicons name="person" size={size} color={color} />,
+        }}
+      />
+    </Tabs>
+  );
+}
+
+
+========================================
+FILE: app\index.tsx
+========================================
+import { useEffect } from 'react';
+import { View, ActivityIndicator } from 'react-native';
+import { router } from 'expo-router';
+import { useAuth } from '../src/context/AuthContext';
+import { Colors } from '../src/types/theme';
+
+export default function Index() {
+  const { user, isLoading } = useAuth();
+
+  useEffect(() => {
+    if (isLoading) return;
+    if (!user) {
+      router.replace('/(auth)/landing');
+    } else if (user.role === 'DRIVER') {
+      router.replace('/(driver)/dashboard');
+    } else if (user.role === 'ADMIN') {
+      router.replace('/(passenger)/ride');
+    } else {
+      router.replace('/(passenger)/ride');
+    }
+  }, [user, isLoading]);
+
+  return (
+    <View style={{ flex: 1, backgroundColor: Colors.dark, justifyContent: 'center', alignItems: 'center' }}>
+      <ActivityIndicator color={Colors.orange} size="large" />
+    </View>
+  );
+}
+
+
+========================================
+FILE: app\_layout.tsx
+========================================
+import { useEffect } from 'react';
+import { Stack } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import * as SplashScreen from 'expo-splash-screen';
+import { AuthProvider } from '../src/context/AuthContext';
+import { ThemeProvider, useTheme } from '../src/context/ThemeContext';
+
+SplashScreen.preventAutoHideAsync();
+
+function AppContent() {
+  const { isDark, Colors } = useTheme();
+  useEffect(() => { SplashScreen.hideAsync(); }, []);
+
+  return (
+    <>
+      <StatusBar style={isDark ? 'light' : 'dark'} backgroundColor={Colors.background} />
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: Colors.background } }}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="(auth)" />
+        <Stack.Screen name="(passenger)" />
+        <Stack.Screen name="(driver)" />
+      </Stack>
+    </>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ThemeProvider>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </ThemeProvider>
+    </GestureHandlerRootView>
+  );
+}
+
+
+========================================
+FILE: src\components\LocationSearch.tsx
+========================================
+import React, { useState, useCallback } from 'react';
+import {
+  View, Text, TextInput, TouchableOpacity, FlatList,
+  StyleSheet, ActivityIndicator
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { geocodeService } from '../services/userService';
+import { Colors, Spacing, Radius } from '../types/theme';
+import { Location } from '../types/api';
+import * as ExpoLocation from 'expo-location';
+
+interface Props {
+  placeholder: string;
+  value: string;
+  onSelect: (loc: Location) => void;
+  icon?: string;
+  showGPS?: boolean;
+}
+
+export function LocationSearch({ placeholder, value, onSelect, icon = 'navigate', showGPS = false }: Props) {
+  const [query, setQuery] = useState(value);
+  const [results, setResults] = useState<Location[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [focused, setFocused] = useState(false);
+
+  const search = useCallback(async (q: string) => {
+    setQuery(q);
+    if (q.length < 3) { setResults([]); return; }
+    setLoading(true);
+    const data = await geocodeService.search(q);
+    setResults(data);
+    setLoading(false);
+  }, []);
+
+  const handleSelect = (loc: Location) => {
+    setQuery(loc.name.split(',')[0]);
+    setResults([]);
+    setFocused(false);
+    onSelect(loc);
+  };
+
+  const useGPS = async () => {
+    const { status } = await ExpoLocation.requestForegroundPermissionsAsync();
+    if (status !== 'granted') return;
+    setLoading(true);
+    const pos = await ExpoLocation.getCurrentPositionAsync({ accuracy: ExpoLocation.Accuracy.Balanced });
+    const name = await geocodeService.reverseGeocode(pos.coords.latitude, pos.coords.longitude);
+    setLoading(false);
+    handleSelect({ name, lat: pos.coords.latitude, lon: pos.coords.longitude });
+  };
+
+  return (
+    <View>
+      <View style={[styles.row, focused && styles.rowFocused]}>
+        <Ionicons name={icon as any} size={18} color={focused ? Colors.orange : Colors.textMuted} style={styles.icon} />
+        <TextInput
+          style={styles.input}
+          placeholder={placeholder}
+          placeholderTextColor={Colors.textMuted}
+          value={query}
+          onChangeText={search}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setTimeout(() => setFocused(false), 200)}
+        />
+        {loading && <ActivityIndicator size="small" color={Colors.orange} style={{ marginRight: 8 }} />}
+        {showGPS && !loading && (
+          <TouchableOpacity onPress={useGPS} style={styles.gpsBtn}>
+            <Ionicons name="locate" size={18} color={Colors.orange} />
+          </TouchableOpacity>
+        )}
+      </View>
+
+      {focused && results.length > 0 && (
+        <View style={styles.dropdown}>
+          <FlatList
+            data={results}
+            keyExtractor={(_, i) => String(i)}
+            scrollEnabled={false}
+            renderItem={({ item }) => (
+              <TouchableOpacity style={styles.resultItem} onPress={() => handleSelect(item)}>
+                <Ionicons name="location" size={14} color={Colors.orange} />
+                <Text style={styles.resultText} numberOfLines={2}>{item.name}</Text>
+              </TouchableOpacity>
+            )}
+          />
+        </View>
+      )}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  row: {
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: Colors.input, borderRadius: Radius.md,
+    borderWidth: 1, borderColor: Colors.inputBorder, paddingHorizontal: Spacing.md,
+  },
+  rowFocused: { borderColor: Colors.orange },
+  icon: { marginRight: 8 },
+  input: { flex: 1, color: Colors.white, fontWeight: '700', fontSize: 14, paddingVertical: 14 },
+  gpsBtn: { padding: 6 },
+  dropdown: {
+    backgroundColor: '#1E1E1E', borderRadius: Radius.md, marginTop: 4,
+    borderWidth: 1, borderColor: Colors.inputBorder,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.5, elevation: 8,
+  },
+  resultItem: {
+    flexDirection: 'row', alignItems: 'flex-start', gap: 8,
+    paddingHorizontal: Spacing.md, paddingVertical: 12,
+    borderBottomWidth: 1, borderBottomColor: Colors.darkBorder,
+  },
+  resultText: { flex: 1, color: Colors.white, fontWeight: '600', fontSize: 13, lineHeight: 18 },
+});
+
+
+========================================
+FILE: src\components\ThemeToggle.tsx
+========================================
+import React from 'react';
+import { TouchableOpacity, StyleSheet, Animated } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../context/ThemeContext';
+
+export function ThemeToggle() {
+  const { isDark, toggleTheme, Colors } = useTheme();
+
+  return (
+    <TouchableOpacity
+      onPress={toggleTheme}
+      style={[styles.btn, { backgroundColor: Colors.input, borderColor: Colors.cardBorder }]}
+      activeOpacity={0.8}
+    >
+      <Ionicons
+        name={isDark ? 'sunny' : 'moon'}
+        size={18}
+        color={Colors.orange}
+      />
+    </TouchableOpacity>
+  );
+}
+
+const styles = StyleSheet.create({
+  btn: {
+    width: 38, height: 38, borderRadius: 12,
+    alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1,
+  },
+});
+
+
+========================================
+FILE: src\context\AuthContext.tsx
+========================================
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { authService } from '../services/auth';
+import { UserObj } from '../types/api';
+
+interface AuthContextType {
+  user: UserObj | null;
+  isLoading: boolean;
+  login: (identifier: string, password: string) => Promise<{ success: boolean; message?: string }>;
+  logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextType | null>(null);
+
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [user, setUser] = useState<UserObj | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    loadUser();
+  }, []);
+
+  const loadUser = async () => {
+    try {
+      const u = await authService.getUser();
+      setUser(u);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const login = async (identifier: string, password: string) => {
+    const result = await authService.login(identifier, password);
+    if (result.success) {
+      await loadUser();
+    }
+    return result;
+  };
+
+  const logout = async () => {
+    await authService.logout();
+    setUser(null);
+  };
+
+  const refreshUser = async () => {
+    await loadUser();
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, isLoading, login, logout, refreshUser }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error('useAuth must be used within AuthProvider');
+  return ctx;
+};
+
+
+========================================
+FILE: src\context\ThemeContext.tsx
+========================================
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import * as SecureStore from 'expo-secure-store';
+import { LightColors, DarkColors } from '../types/theme';
+
+type ThemeColors = typeof DarkColors;
+
+interface ThemeContextType {
+  isDark: boolean;
+  Colors: ThemeColors;
+  toggleTheme: () => void;
+}
+
+const ThemeContext = createContext<ThemeContextType | null>(null);
+
+export const ThemeProvider = ({ children }: { children: ReactNode }) => {
+  const [isDark, setIsDark] = useState(false); // Light by default
+
+  useEffect(() => {
+    SecureStore.getItemAsync('theme').then(val => {
+      if (val === 'dark') setIsDark(true);
+      else setIsDark(false);
+    });
+  }, []);
+
+  const toggleTheme = async () => {
+    const next = !isDark;
+    setIsDark(next);
+    await SecureStore.setItemAsync('theme', next ? 'dark' : 'light');
+  };
+
+  const Colors = isDark ? DarkColors : LightColors;
+
+  return (
+    <ThemeContext.Provider value={{ isDark, Colors, toggleTheme }}>
+      {children}
+    </ThemeContext.Provider>
+  );
+};
+
+export const useTheme = () => {
+  const ctx = useContext(ThemeContext);
+  if (!ctx) throw new Error('useTheme must be used within ThemeProvider');
+  return ctx;
+};
+
+
+========================================
+FILE: src\services\api.ts
+========================================
+import axios, { AxiosInstance } from 'axios';
+import * as SecureStore from 'expo-secure-store';
+
+export const BASE_URL = 'https://traefikdev.yowyob.com/ridngo';
+export const VEHICLE_URL = 'https://vehicule-service.pynfi.com';
+
+const api: AxiosInstance = axios.create({
+  baseURL: BASE_URL,
+  headers: { 'Content-Type': 'application/json' },
+  timeout: 15000,
+});
+
+export const vehicleApi: AxiosInstance = axios.create({
+  baseURL: VEHICLE_URL,
+  headers: { 'Content-Type': 'application/json' },
+  timeout: 15000,
+});
+
+let isRefreshing = false;
+let failedQueue: Array<{ resolve: (v: string) => void; reject: (e: unknown) => void }> = [];
+
+const processQueue = (error: unknown, token: string | null = null) => {
+  failedQueue.forEach(p => (error ? p.reject(error) : p.resolve(token!)));
+  failedQueue = [];
+};
+
+const authInterceptor = async (config: any) => {
+  try {
+    const token = await SecureStore.getItemAsync('accessToken');
+    if (token && config.headers) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  } catch (e) {}
+  return config;
+};
+
+api.interceptors.request.use(authInterceptor);
+vehicleApi.interceptors.request.use(authInterceptor);
+
+api.interceptors.response.use(
+  r => r,
+  async error => {
+    const originalRequest = error.config;
+    if (error.response?.status !== 401 || originalRequest.url?.includes('/api/v1/auth')) {
+      return Promise.reject(error);
+    }
+    if (originalRequest._retry) return Promise.reject(error);
+
+    if (isRefreshing) {
+      return new Promise((resolve, reject) => {
+        failedQueue.push({ resolve, reject });
+      }).then(token => {
+        originalRequest.headers.Authorization = `Bearer ${token}`;
+        return api(originalRequest);
+      });
+    }
+
+    originalRequest._retry = true;
+    const refreshToken = await SecureStore.getItemAsync('refreshToken');
+    if (!refreshToken) return Promise.reject(error);
+
+    isRefreshing = true;
+    try {
+      const res = await axios.post(`${BASE_URL}/api/v1/auth/refresh`, { refreshToken });
+      const { accessToken, refreshToken: newRefresh } = res.data;
+      await SecureStore.setItemAsync('accessToken', accessToken);
+      await SecureStore.setItemAsync('refreshToken', newRefresh);
+      api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+      processQueue(null, accessToken);
+      return api(originalRequest);
+    } catch (e) {
+      processQueue(e, null);
+      await SecureStore.deleteItemAsync('accessToken');
+      await SecureStore.deleteItemAsync('refreshToken');
+      await SecureStore.deleteItemAsync('user');
+      return Promise.reject(e);
+    } finally {
+      isRefreshing = false;
+    }
+  }
+);
+
+export default api;
+
+
+========================================
+FILE: src\services\auth.ts
+========================================
+import * as SecureStore from 'expo-secure-store';
+import api from './api';
+import { AuthResponse, UserObj, UserRole } from '../types/api';
+
+export const authService = {
+  login: async (identifier: string, password: string): Promise<{ success: boolean; role?: string; message?: string }> => {
+    try {
+      const response = await api.post<AuthResponse>('/api/v1/auth/login', { identifier, password });
+      return await finalizeSession(response.data);
+    } catch (error: any) {
+      const msg = error.response?.data?.message
+        || error.response?.data?.error
+        || error.message
+        || "Identifiants invalides";
+      return { success: false, message: msg };
+    }
+  },
+
+  register: async (data: {
+    username: string;
+    password: string;
+    email: string;
+    phone: string;
+    firstName: string;
+    lastName: string;
+    role: UserRole;
+    photo?: any;
+  }): Promise<{ success: boolean; role?: string; message?: string }> => {
+    try {
+      const registerDto = {
+        username: data.username,
+        password: data.password,
+        email: data.email,
+        phone: data.phone,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        roles: [data.role],
+      };
+
+      // Backend always requires multipart/form-data with a "data" JSON part
+      const formData = new FormData();
+      const blob = new Blob([JSON.stringify(registerDto)], { type: 'application/json' });
+      formData.append('data', blob as any);
+
+      if (data.photo) {
+        formData.append('file', {
+          uri: data.photo.uri,
+          name: data.photo.fileName || 'photo.jpg',
+          type: data.photo.mimeType || 'image/jpeg',
+        } as any);
+      }
+
+      const response = await api.post<AuthResponse>('/api/v1/auth/register', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      return await finalizeSession(response.data);
+    } catch (error: any) {
+      const msg = error.response?.data?.message
+        || error.response?.data?.error
+        || (typeof error.response?.data === 'string' ? error.response.data : null)
+        || error.message
+        || "Erreur lors de l'inscription";
+      return { success: false, message: typeof msg === 'string' ? msg : JSON.stringify(msg) };
+    }
+  },
+
+  logout: async () => {
+    await SecureStore.deleteItemAsync('accessToken');
+    await SecureStore.deleteItemAsync('refreshToken');
+    await SecureStore.deleteItemAsync('user');
+  },
+
+  getUser: async (): Promise<UserObj | null> => {
+    try {
+      const raw = await SecureStore.getItemAsync('user');
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  },
+
+  isAuthenticated: async (): Promise<boolean> => {
+    const token = await SecureStore.getItemAsync('accessToken');
+    return !!token;
+  },
+};
+
+const finalizeSession = async (authData: AuthResponse): Promise<{ success: boolean; role: string }> => {
+  if (!authData.accessToken) throw new Error('Token manquant');
+  await SecureStore.setItemAsync('accessToken', authData.accessToken);
+  if (authData.refreshToken) await SecureStore.setItemAsync('refreshToken', authData.refreshToken);
+
+  const isDriver = authData.roles?.includes('RIDE_AND_GO_DRIVER');
+  const isAdmin = authData.roles?.includes('RIDE_AND_GO_ADMIN');
+
+  let userProfile: any = {};
+  try {
+    const profileRes = await api.get(isDriver ? '/api/v1/users/me/driver-profile' : '/api/v1/users/me');
+    userProfile = isDriver ? (profileRes.data.user || profileRes.data) : profileRes.data;
+  } catch {
+    userProfile = { id: authData.username, email: '', name: authData.username };
+  }
+
+  const userObj: UserObj = {
+    id: userProfile.id || authData.username,
+    name: userProfile.name
+      || `${userProfile.firstName || ''} ${userProfile.lastName || ''}`.trim()
+      || authData.username,
+    email: userProfile.email || '',
+    phone: userProfile.telephone,
+    role: isDriver ? 'DRIVER' : isAdmin ? 'ADMIN' : 'PASSENGER',
+  };
+
+  await SecureStore.setItemAsync('user', JSON.stringify(userObj));
+  return { success: true, role: userObj.role };
+};
+
+
+========================================
+FILE: src\services\rideService.ts
+========================================
+import api from './api';
+import {
+  OfferResponse, FareResponse, RideResponse,
+  CreateOfferRequest, RideTrackingResponse, Wallet, DriverTrajectory
+} from '../types/api';
+
+export const rideService = {
+  estimateFare: async (pickup: string, destination: string): Promise<FareResponse> => {
+    const body = {
+      depart: pickup,
+      arrivee: destination,
+      heure: 'matin',
+      meteo: 0,
+      type_zone: 0,
+      congestion_user: 1,
+    };
+    const response = await api.post<FareResponse>('/api/v1/fares/estimate', body);
+    return response.data;
+  },
+
+  createOffer: async (data: CreateOfferRequest): Promise<OfferResponse> => {
+    const response = await api.post<OfferResponse>('/api/v1/offers', data);
+    return response.data;
+  },
+
+  getAvailableOffers: async (page = 0, size = 50): Promise<OfferResponse[]> => {
+    const response = await api.get<OfferResponse[]>(`/api/v1/offers/available?page=${page}&size=${size}`);
+    return response.data;
+  },
+
+  applyToOffer: async (offerId: string): Promise<OfferResponse> => {
+    const response = await api.post<OfferResponse>(`/api/v1/offers/${offerId}/apply`);
+    return response.data;
+  },
+
+  getOfferBids: async (offerId: string): Promise<OfferResponse> => {
+    const response = await api.get<OfferResponse>(`/api/v1/offers/${offerId}/bids`);
+    return response.data;
+  },
+
+  selectDriver: async (offerId: string, driverId: string): Promise<OfferResponse> => {
+    const response = await api.patch<OfferResponse>(`/api/v1/offers/${offerId}/select-driver?driverId=${driverId}`);
+    return response.data;
+  },
+
+  driverAccepts: async (offerId: string, driverId: string): Promise<RideResponse> => {
+    const response = await api.post<RideResponse>(`/api/v1/offers/${offerId}/accept?driverId=${driverId}`);
+    return response.data;
+  },
+
+  getTrackingInfo: async (rideId: string): Promise<RideTrackingResponse> => {
+    const response = await api.get<RideTrackingResponse>(`/api/v1/trips/${rideId}/location`);
+    return response.data;
+  },
+
+  updateRideStatus: async (rideId: string, status: 'ONGOING' | 'COMPLETED' | 'CANCELLED'): Promise<RideResponse> => {
+    const response = await api.patch<RideResponse>(`/api/v1/trips/${rideId}/status`, { status });
+    return response.data;
+  },
+
+  postReview: async (rideId: string, stars: number, comment: string) => {
+    const response = await api.post(`/api/v1/reviews/ride/${rideId}`, { stars, comment });
+    return response.data;
+  },
+
+  getOfferById: async (id: string): Promise<OfferResponse> => {
+    const response = await api.get<OfferResponse>(`/api/v1/offers/${id}`);
+    return response.data;
+  },
+
+  getMyWallet: async (): Promise<Wallet> => {
+    const response = await api.get<Wallet>('/api/v1/wallets/me');
+    return response.data;
+  },
+
+  getRideDetails: async (rideId: string): Promise<RideResponse> => {
+    const response = await api.get<RideResponse>(`/api/v1/trips/${rideId}`);
+    return response.data;
+  },
+
+  getRideByOffer: async (offerId: string): Promise<RideResponse> => {
+    const response = await api.get<RideResponse>(`/api/v1/offers/${offerId}/ride`);
+    const data = Array.isArray(response.data) ? response.data[0] : response.data;
+    if (!data?.id) throw new Error('Aucune course trouvée');
+    return data;
+  },
+
+  getMyHistory: async (page = 0, size = 20): Promise<RideResponse[]> => {
+    const response = await api.get<RideResponse[]>(`/api/v1/trips/enriched-history?page=${page}&size=${size}`);
+    return response.data;
+  },
+
+  getCurrentRide: async (): Promise<RideResponse | null> => {
+    try {
+      const res = await api.get<RideResponse>('/api/v1/trips/driver/current');
+      return res.data;
+    } catch {
+      return null;
+    }
+  },
+
+  getCurrentPassengerRide: async (): Promise<RideResponse | null> => {
+    try {
+      const response = await api.get<RideResponse[]>('/api/v1/trips/history?page=0&size=1');
+      const latest = response.data[0];
+      if (latest && (latest.state === 'CREATED' || latest.state === 'ONGOING')) return latest;
+      return null;
+    } catch {
+      return null;
+    }
+  },
+
+  updateLocation: async (lat: number, lon: number): Promise<boolean> => {
+    try {
+      await api.post('/api/v1/location', { latitude: lat, longitude: lon });
+      return true;
+    } catch {
+      return false;
+    }
+  },
+
+  getMyTrajectories: async (): Promise<DriverTrajectory[]> => {
+    const response = await api.get<DriverTrajectory[]>('/api/v1/trips/trajectories/me');
+    return response.data;
+  },
+};
+
+
+========================================
+FILE: src\services\userService.ts
+========================================
+import api from './api';
+
+export const driverService = {
+  becomeDriver: async (data: any) => {
+    const response = await api.post('/api/v1/users/driver', data);
+    return response.data;
+  },
+
+  getDriverProfile: async () => {
+    const response = await api.get('/api/v1/users/me/driver-profile');
+    return response.data;
+  },
+
+  toggleOnlineStatus: async (isOnline: boolean) => {
+    const response = await api.post(`/api/v1/drivers/status/online?isOnline=${isOnline}`);
+    return response.data;
+  },
+};
+
+export const userService = {
+  getMe: async () => {
+    const res = await api.get('/api/v1/users/me');
+    return res.data;
+  },
+
+  updateProfile: async (data: { firstName?: string; lastName?: string; phone?: string }) => {
+    const res = await api.put('/api/v1/users/profile', data);
+    return res.data;
+  },
+
+  changePassword: async (currentPassword: string, newPassword: string) => {
+    await api.put('/api/v1/users/password', { currentPassword, newPassword });
+  },
+
+  getNotifications: async (page = 0, size = 20) => {
+    const res = await api.get(`/api/v1/notifications?page=${page}&size=${size}`);
+    return res.data;
+  },
+
+  markNotificationRead: async (id: string) => {
+    await api.patch(`/api/v1/notifications/${id}/read`);
+  },
+
+  markAllRead: async () => {
+    await api.patch('/api/v1/notifications/read-all');
+  },
+};
+
+export const geocodeService = {
+  search: async (query: string): Promise<Array<{ name: string; lat: number; lon: number }>> => {
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=cm&limit=5`,
+        { headers: { 'Accept-Language': 'fr' } }
+      );
+      const data = await res.json();
+      return data.map((item: any) => ({
+        name: item.display_name,
+        lat: parseFloat(item.lat),
+        lon: parseFloat(item.lon),
+      }));
+    } catch {
+      return [];
+    }
+  },
+
+  reverseGeocode: async (lat: number, lon: number): Promise<string> => {
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`,
+        { headers: { 'Accept-Language': 'fr' } }
+      );
+      const data = await res.json();
+      return data.display_name || `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+    } catch {
+      return `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+    }
+  },
+};
+
+
+========================================
+FILE: src\types\api.ts
+========================================
+export type UserRole = 'RIDE_AND_GO_PASSENGER' | 'RIDE_AND_GO_DRIVER' | 'RIDE_AND_GO_ADMIN';
+export type SimpleRole = 'PASSENGER' | 'DRIVER' | 'ADMIN';
+export type OfferState = 'PENDING' | 'BID_RECEIVED' | 'DRIVER_SELECTED' | 'VALIDATED' | 'CANCELLED';
+export type RideState = 'CREATED' | 'ONGOING' | 'COMPLETED' | 'CANCELLED';
+
+export interface AuthResponse {
+  accessToken: string;
+  refreshToken: string;
+  username: string;
+  roles: string[];
+  permissions: string[];
+}
+
+export interface UserObj {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  role: SimpleRole;
+}
+
+export interface UserResponse {
+  id: string;
+  name?: string;
+  firstName?: string;
+  lastName?: string;
+  email: string;
+  telephone?: string;
+  roles: UserRole[];
+  profilePhotoUrl?: string;
+}
+
+export interface VehicleInfo {
+  vehicleMakeName?: string;
+  vehicleModelName?: string;
+  vehicleTypeName?: string;
+  transmissionTypeName?: string;
+  fuelTypeName?: string;
+  vehicleSizeName?: string;
+  manufacturerName?: string;
+  vehicleSerialNumber?: string;
+  registrationNumber?: string;
+  tankCapacity?: number;
+  luggageMaxCapacity?: number;
+  totalSeatNumber?: number;
+  mileageAtStart?: number;
+  mileageSinceCommissioning?: number;
+  vehicleAgeAtStart?: number;
+  averageFuelConsumptionPerKm?: number;
+  // attributes
+  makeName?: string;
+  modelName?: string;
+  typeName?: string;
+  sizeName?: string;
+  fuelTypeName_?: string;
+  transmissionType?: string;
+  airConditioned?: boolean;
+  comfortable?: boolean;
+  soft?: boolean;
+  screen?: boolean;
+  wifi?: boolean;
+  tollCharge?: boolean;
+  carParking?: boolean;
+  alarm?: boolean;
+  stateTax?: boolean;
+  driverAllowance?: boolean;
+}
+
+export interface Bid {
+  id: string;
+  driverId: string;
+  driverName: string;
+  driverPhoto?: string;
+  rating?: number;
+  totalTrips?: number;
+  eta?: number;
+  distanceToPassenger?: number;
+  latitude?: number;
+  longitude?: number;
+  brand?: string;
+  model?: string;
+  licensePlate?: string;
+}
+
+export interface OfferResponse {
+  id: string;
+  passengerId: string;
+  startPoint: string;
+  endPoint: string;
+  price: number;
+  state: OfferState;
+  proposals?: Bid[];
+  status?: string;
+  distance?: number;
+  createdAt?: string;
+  passengerPhone?: string;
+  departureTime?: string;
+  startLat?: number;
+  startLon?: number;
+  endLat?: number;
+  endLon?: number;
+}
+
+export interface RideResponse {
+  id: string;
+  offerId?: string;
+  driverId?: string;
+  passengerId?: string;
+  startPoint?: string;
+  endPoint?: string;
+  price?: number;
+  state: RideState;
+  rideId?: string;
+  createdAt?: string;
+  distance?: number;
+  vehicle?: {
+    brand?: string;
+    modelName?: string;
+  };
+  partnerPhoto?: string;
+}
+
+export interface FareResponse {
+  estimatedPrice?: number;
+  price?: number;
+  distance?: number;
+  duration?: number;
+}
+
+export interface Wallet {
+  id?: string;
+  balance: number;
+  currency?: string;
+}
+
+export interface CreateOfferRequest {
+  startPoint: string;
+  endPoint: string;
+  price: number;
+  startLat?: number;
+  startLon?: number;
+  endLat?: number;
+  endLon?: number;
+  passengerPhone?: string;
+  departureTime?: string;
+}
+
+export interface RideTrackingResponse {
+  latitude: number;
+  longitude: number;
+  timestamp?: string;
+}
+
+export interface DriverTrajectory {
+  id: string;
+  points: Array<{ lat: number; lon: number }>;
+  createdAt: string;
+}
+
+export interface Location {
+  name: string;
+  lat: number;
+  lon: number;
+}
+
+
+========================================
+FILE: src\types\theme.ts
+========================================
+export const LightColors = {
+  orange: '#FF8C00',
+  orangeLight: '#FFA333',
+  orangeDark: '#CC7000',
+  orangeBg: 'rgba(255, 140, 0, 0.12)',
+
+  dark: '#FFFFFF',
+  darkCard: '#F5F5F5',
+  darkBorder: '#E0E0E0',
+
+  white: '#0D0D0D',
+  offWhite: '#1A1A1A',
+
+  text: '#0D0D0D',
+  textSecondary: 'rgba(0,0,0,0.55)',
+  textMuted: 'rgba(0,0,0,0.35)',
+
+  green: '#16A34A',
+  greenBg: 'rgba(22, 163, 74, 0.1)',
+  red: '#DC2626',
+  redBg: 'rgba(220, 38, 38, 0.1)',
+  blue: '#2563EB',
+
+  card: '#FFFFFF',
+  cardBorder: 'rgba(0,0,0,0.08)',
+
+  input: 'rgba(0,0,0,0.05)',
+  inputBorder: 'rgba(0,0,0,0.12)',
+  inputFocus: '#FF8C00',
+
+  background: '#F2F2F7',
+  statusBar: 'dark' as 'dark' | 'light',
+};
+
+export const DarkColors = {
+  orange: '#FF8C00',
+  orangeLight: '#FFA333',
+  orangeDark: '#CC7000',
+  orangeBg: 'rgba(255, 140, 0, 0.1)',
+
+  dark: '#0D0D0D',
+  darkCard: '#1A1A1A',
+  darkBorder: '#2A2A2A',
+
+  white: '#FFFFFF',
+  offWhite: '#FAF3DD',
+
+  text: '#FFFFFF',
+  textSecondary: 'rgba(255,255,255,0.5)',
+  textMuted: 'rgba(255,255,255,0.3)',
+
+  green: '#22C55E',
+  greenBg: 'rgba(34, 197, 94, 0.1)',
+  red: '#EF4444',
+  redBg: 'rgba(239, 68, 68, 0.1)',
+  blue: '#3B82F6',
+
+  card: '#1C1C1C',
+  cardBorder: 'rgba(255,255,255,0.07)',
+
+  input: 'rgba(255,255,255,0.07)',
+  inputBorder: 'rgba(255,255,255,0.1)',
+  inputFocus: '#FF8C00',
+
+  background: '#0D0D0D',
+  statusBar: 'light' as 'dark' | 'light',
+};
+
+// Default export for backward compat — will be overridden by context
+export const Colors = DarkColors;
+
+export const Spacing = {
+  xs: 4, sm: 8, md: 16, lg: 24, xl: 32, xxl: 48,
+};
+
+export const Radius = {
+  sm: 8, md: 16, lg: 24, xl: 32, full: 9999,
+};
+
+
+========================================
+FILE: app.json
+========================================
+{
+  "expo": {
+    "name": "RidnGo",
+    "slug": "ridengo",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FF8C00"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.yowyob.ridngo",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "RidnGo utilise votre position pour afficher les chauffeurs proches.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "RidnGo utilise votre position en arrière-plan pour le suivi GPS.",
+        "NSCameraUsageDescription": "Pour prendre votre photo de profil.",
+        "NSPhotoLibraryUsageDescription": "Pour choisir votre photo de profil.",
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": true
+        }
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FF8C00"
+      },
+      "package": "com.yowyob.ridngo",
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "INTERNET",
+        "ACCESS_NETWORK_STATE"
+      ],
+      "usesCleartextTraffic": true
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "RidnGo utilise votre position pour le suivi GPS."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Pour choisir votre photo de profil.",
+          "cameraPermission": "Pour prendre votre photo de profil."
+        }
+      ]
+    ],
+    "scheme": "ridngo",
+    "extra": {
+      "eas": {
+        "projectId": "abcdfabf-967b-423a-9ebd-552147959f52"
+      }
+    }
+  }
+}
+
+
+========================================
+FILE: babel.config.js
+========================================
+module.exports = function (api) {
+  api.cache(true);
+  return {
+    presets: ['babel-preset-expo'],
+    plugins: ['react-native-reanimated/plugin'],
+  };
+};
+
+
+========================================
+FILE: eas.json
+========================================
+{
+  "cli": {
+    "version": ">= 12.0.0"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "apk": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleRelease"
+      }
+    },
+    "production": {
+      "android": {
+        "buildType": "app-bundle"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}
+
+
+========================================
+FILE: package-lock.json
+========================================
 {
   "name": "ridngo-mobile",
   "version": "1.0.0",
@@ -26,8 +3710,7 @@
         "react-native-gesture-handler": "~2.20.2",
         "react-native-reanimated": "~3.16.7",
         "react-native-safe-area-context": "4.12.0",
-        "react-native-screens": "~4.4.0",
-        "react-native-webview": "13.12.5"
+        "react-native-screens": "~4.4.0"
       },
       "devDependencies": {
         "@babel/core": "^7.25.0",
@@ -6894,6 +10577,9 @@
       "cpu": [
         "arm64"
       ],
+      "libc": [
+        "glibc"
+      ],
       "license": "MPL-2.0",
       "optional": true,
       "os": [
@@ -6913,6 +10599,9 @@
       "integrity": "sha512-rCGBm2ax7kQ9pBSeITfCW9XSVF69VX+fm5DIpvDZQl4NnQoMQyRwhZQm9pd59m8leZ1IesRqWk2v/DntMo26lg==",
       "cpu": [
         "arm64"
+      ],
+      "libc": [
+        "musl"
       ],
       "license": "MPL-2.0",
       "optional": true,
@@ -6934,6 +10623,9 @@
       "cpu": [
         "x64"
       ],
+      "libc": [
+        "glibc"
+      ],
       "license": "MPL-2.0",
       "optional": true,
       "os": [
@@ -6953,6 +10645,9 @@
       "integrity": "sha512-QKjTxXm8A9s6v9Tg3Fk0gscCQA1t/HMoF7Woy1u68wCk5kS4fR+q3vXa1p3++REW784cRAtkYKrPy6JKibrEZA==",
       "cpu": [
         "x64"
+      ],
+      "libc": [
+        "musl"
       ],
       "license": "MPL-2.0",
       "optional": true,
@@ -8917,20 +12612,6 @@
       "dependencies": {
         "react-freeze": "^1.0.0",
         "warn-once": "^0.1.0"
-      },
-      "peerDependencies": {
-        "react": "*",
-        "react-native": "*"
-      }
-    },
-    "node_modules/react-native-webview": {
-      "version": "13.12.5",
-      "resolved": "https://registry.npmjs.org/react-native-webview/-/react-native-webview-13.12.5.tgz",
-      "integrity": "sha512-INOKPom4dFyzkbxbkuQNfeRG9/iYnyRDzrDkJeyvSWgJAW2IDdJkWFJBS2v0RxIL4gqLgHkiIZDOfiLaNnw83Q==",
-      "license": "MIT",
-      "dependencies": {
-        "escape-string-regexp": "^4.0.0",
-        "invariant": "2.2.4"
       },
       "peerDependencies": {
         "react": "*",
@@ -10914,4 +14595,66 @@
       }
     }
   }
+}
+
+
+========================================
+FILE: package.json
+========================================
+{
+  "name": "ridngo-mobile",
+  "version": "1.0.0",
+  "main": "expo-router/entry",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios"
+  },
+  "dependencies": {
+    "expo": "~52.0.36",
+    "expo-router": "~4.0.17",
+    "expo-status-bar": "~2.0.1",
+    "expo-secure-store": "~14.0.1",
+    "expo-location": "~18.0.10",
+    "expo-image-picker": "~16.0.6",
+    "expo-font": "~13.0.4",
+    "expo-splash-screen": "~0.29.22",
+    "expo-linking": "~7.0.5",
+    "expo-asset": "~11.0.4",
+    "expo-constants": "~17.0.8",
+    "react": "18.3.1",
+    "react-native": "0.76.9",
+    "react-native-safe-area-context": "4.12.0",
+    "react-native-screens": "~4.4.0",
+    "react-native-gesture-handler": "~2.20.2",
+    "react-native-reanimated": "~3.16.7",
+    "axios": "^1.7.9",
+    "@expo/vector-icons": "~14.0.4"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.25.0",
+    "@types/react": "~18.3.12",
+    "typescript": "^5.3.3"
+  }
+}
+
+
+========================================
+FILE: tsconfig.json
+========================================
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ]
+    }
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    ".expo/types/**/*.d.ts"
+  ]
 }

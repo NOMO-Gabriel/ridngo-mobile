@@ -5,7 +5,8 @@
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
-    "ios": "expo start --ios"
+    "ios": "expo start --ios",
+    "build:apk": "eas build --platform android --profile apk"
   },
   "dependencies": {
     "expo": "~52.0.36",
@@ -25,6 +26,7 @@
     "react-native-screens": "~4.4.0",
     "react-native-gesture-handler": "~2.20.2",
     "react-native-reanimated": "~3.16.7",
+    "react-native-webview": "13.12.5",
     "axios": "^1.7.9",
     "@expo/vector-icons": "~14.0.4"
   },
