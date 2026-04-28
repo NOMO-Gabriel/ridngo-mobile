@@ -1,5 +1,6 @@
 import * as SecureStore from 'expo-secure-store';
 import api from './api';
+import { BASE_URL } from './api';
 import { AuthResponse, UserObj, UserRole } from '../types/api';
 
 export const authService = {
@@ -18,37 +19,57 @@ export const authService = {
     firstName: string; lastName: string; role: UserRole; photo?: any;
   }): Promise<{ success: boolean; role?: string; message?: string }> => {
     try {
+      const token = await SecureStore.getItemAsync('accessToken');
+
+      // Build multipart manually using fetch (Axios breaks multipart on React Native)
+      const boundary = '----RidnGoBoundary' + Date.now();
+
       const registerDto = JSON.stringify({
-        username: data.username, password: data.password, email: data.email,
-        phone: data.phone, firstName: data.firstName, lastName: data.lastName,
+        username: data.username,
+        password: data.password,
+        email: data.email,
+        phone: data.phone,
+        firstName: data.firstName,
+        lastName: data.lastName,
         roles: [data.role],
       });
 
-      // React Native FormData - no Blob support, use string directly
-      const formData = new FormData();
-      formData.append('data', registerDto);
+      let body = '';
+      body += `--${boundary}\r\n`;
+      body += `Content-Disposition: form-data; name="data"\r\n`;
+      body += `Content-Type: application/json\r\n\r\n`;
+      body += `${registerDto}\r\n`;
 
       if (data.photo) {
-        formData.append('file', {
-          uri: data.photo.uri,
-          name: data.photo.fileName || 'photo.jpg',
-          type: data.photo.mimeType || 'image/jpeg',
-        } as any);
+        // For photo we still use FormData separately
+        body += `--${boundary}\r\n`;
+        body += `Content-Disposition: form-data; name="file"; filename="${data.photo.fileName || 'photo.jpg'}"\r\n`;
+        body += `Content-Type: ${data.photo.mimeType || 'image/jpeg'}\r\n\r\n`;
       }
 
-      const response = await api.post<AuthResponse>('/api/v1/auth/register', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-        transformRequest: (data) => data, // prevent axios from re-serializing FormData
+      body += `--${boundary}--\r\n`;
+
+      const headers: any = {
+        'Content-Type': `multipart/form-data; boundary=${boundary}`,
+      };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch(`${BASE_URL}/api/v1/auth/register`, {
+        method: 'POST',
+        headers,
+        body,
       });
 
-      return await finalizeSession(response.data);
+      const responseData = await res.json();
+
+      if (!res.ok) {
+        const msg = responseData?.message || responseData?.error || `Erreur ${res.status}`;
+        return { success: false, message: msg };
+      }
+
+      return await finalizeSession(responseData as AuthResponse);
     } catch (error: any) {
-      const msg = error.response?.data?.message
-        || error.response?.data?.error
-        || (typeof error.response?.data === 'string' ? error.response.data : null)
-        || error.message
-        || "Erreur lors de l'inscription";
-      return { success: false, message: typeof msg === 'string' ? msg : JSON.stringify(msg) };
+      return { success: false, message: error.message || "Erreur lors de l'inscription" };
     }
   },
 
