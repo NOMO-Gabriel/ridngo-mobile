@@ -11,17 +11,18 @@
       "resizeMode": "contain",
       "backgroundColor": "#FF8C00"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.yowyob.ridngo",
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "RidnGo utilise votre position pour afficher les chauffeurs proches et pour le suivi de course.",
-        "NSLocationAlwaysAndWhenInUseUsageDescription": "RidnGo utilise votre position en arrière-plan pour le suivi GPS en tant que chauffeur.",
+        "NSLocationWhenInUseUsageDescription": "RidnGo utilise votre position pour afficher les chauffeurs proches.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "RidnGo utilise votre position en arrière-plan pour le suivi GPS.",
         "NSCameraUsageDescription": "Pour prendre votre photo de profil.",
-        "NSPhotoLibraryUsageDescription": "Pour choisir votre photo de profil."
+        "NSPhotoLibraryUsageDescription": "Pour choisir votre photo de profil.",
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": true
+        }
       }
     },
     "android": {
@@ -31,19 +32,15 @@
       },
       "package": "com.yowyob.ridngo",
       "permissions": [
-        "android.permission.ACCESS_FINE_LOCATION",
-        "android.permission.ACCESS_COARSE_LOCATION",
-        "android.permission.ACCESS_BACKGROUND_LOCATION",
-        "android.permission.CAMERA",
-        "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.WRITE_EXTERNAL_STORAGE",
-        "android.permission.RECORD_AUDIO"
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "INTERNET",
+        "ACCESS_NETWORK_STATE"
       ],
-      "config": {
-        "googleMaps": {
-          "apiKey": "YOUR_GOOGLE_MAPS_API_KEY"
-        }
-      }
+      "usesCleartextTraffic": true
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -70,11 +67,7 @@
     "extra": {
       "eas": {
         "projectId": "abcdfabf-967b-423a-9ebd-552147959f52"
-      },
-      "router": {
-        "origin": false
       }
-    },
-    "owner": "nomo-gabriel"
+    }
   }
 }
