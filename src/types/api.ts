@@ -19,17 +19,6 @@ export interface UserObj {
   role: SimpleRole;
 }
 
-export interface UserResponse {
-  id: string;
-  name?: string;
-  firstName?: string;
-  lastName?: string;
-  email: string;
-  telephone?: string;
-  roles: UserRole[];
-  profilePhotoUrl?: string;
-}
-
 export interface VehicleInfo {
   vehicleMakeName?: string;
   vehicleModelName?: string;
@@ -47,12 +36,10 @@ export interface VehicleInfo {
   mileageSinceCommissioning?: number;
   vehicleAgeAtStart?: number;
   averageFuelConsumptionPerKm?: number;
-  // attributes
   makeName?: string;
   modelName?: string;
   typeName?: string;
   sizeName?: string;
-  fuelTypeName_?: string;
   transmissionType?: string;
   airConditioned?: boolean;
   comfortable?: boolean;
@@ -113,15 +100,17 @@ export interface RideResponse {
   rideId?: string;
   createdAt?: string;
   distance?: number;
-  vehicle?: {
-    brand?: string;
-    modelName?: string;
-  };
+  startLat?: number;
+  startLon?: number;
+  endLat?: number;
+  endLon?: number;
+  vehicle?: { brand?: string; modelName?: string; };
   partnerPhoto?: string;
 }
 
 export interface FareResponse {
   estimatedPrice?: number;
+  prix_moyen?: number;
   price?: number;
   distance?: number;
   duration?: number;

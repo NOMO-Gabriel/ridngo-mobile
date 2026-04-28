@@ -1,27 +1,43 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, SafeAreaView, ScrollView,
-  TouchableOpacity, TextInput, Alert, ActivityIndicator
+  TouchableOpacity, TextInput, Alert, ActivityIndicator, Switch
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useAuth } from '../../src/context/AuthContext';
+import { useTheme } from '../../src/context/ThemeContext';
 import { userService } from '../../src/services/userService';
-import { Colors, Spacing, Radius } from '../../src/types/theme';
+import { Spacing, Radius } from '../../src/types/theme';
 
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
-  const [changingPass, setChangingPass] = useState(false);
+  const { Colors, isDark, toggleTheme } = useTheme();
   const [showPassForm, setShowPassForm] = useState(false);
+  const [changingPass, setChangingPass] = useState(false);
   const [passData, setPassData] = useState({ current: '', next: '', confirm: '' });
+  const [notifCount, setNotifCount] = useState(0);
+  const [loadingProfile, setLoadingProfile] = useState(true);
+  const [profileData, setProfileData] = useState<any>(null);
 
-  const handleLogout = async () => {
+  useEffect(() => { loadProfile(); }, []);
+
+  const loadProfile = async () => {
+    try {
+      const data = await userService.getMe();
+      setProfileData(data);
+      // Load unread notifications count
+      const notifs = await userService.getNotifications(0, 20);
+      const unread = Array.isArray(notifs) ? notifs.filter((n: any) => !n.read).length : 0;
+      setNotifCount(unread);
+    } catch { /* ignore */ }
+    finally { setLoadingProfile(false); }
+  };
+
+  const handleLogout = () => {
     Alert.alert('Déconnexion', 'Voulez-vous vous déconnecter ?', [
       { text: 'Annuler' },
-      {
-        text: 'Déconnexion', style: 'destructive',
-        onPress: async () => { await logout(); router.replace('/'); }
-      }
+      { text: 'Déconnexion', style: 'destructive', onPress: async () => { await logout(); router.replace('/'); } }
     ]);
   };
 
@@ -32,148 +48,178 @@ export default function ProfileScreen() {
     if (passData.next !== passData.confirm) {
       Alert.alert('Erreur', 'Les mots de passe ne correspondent pas'); return;
     }
+    if (passData.next.length < 6) {
+      Alert.alert('Erreur', 'Minimum 6 caractères'); return;
+    }
     setChangingPass(true);
     try {
       await userService.changePassword(passData.current, passData.next);
-      Alert.alert('✅', 'Mot de passe mis à jour');
+      Alert.alert('✅', 'Mot de passe mis à jour avec succès');
       setShowPassForm(false);
       setPassData({ current: '', next: '', confirm: '' });
-    } catch {
-      Alert.alert('Erreur', 'Impossible de changer le mot de passe.');
-    } finally {
-      setChangingPass(false);
-    }
+    } catch (e: any) {
+      Alert.alert('Erreur', e.response?.data?.message || 'Impossible de changer le mot de passe.');
+    } finally { setChangingPass(false); }
   };
 
-  const MenuItem = ({ icon, label, onPress, danger = false }: any) => (
-    <TouchableOpacity style={styles.menuItem} onPress={onPress}>
-      <View style={[styles.menuIcon, danger && styles.menuIconDanger]}>
-        <Ionicons name={icon} size={20} color={danger ? Colors.red : Colors.orange} />
-      </View>
-      <Text style={[styles.menuLabel, danger && { color: Colors.red }]}>{label}</Text>
-      <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />
-    </TouchableOpacity>
-  );
+  const displayName = profileData
+    ? `${profileData.firstName || ''} ${profileData.lastName || ''}`.trim() || profileData.username
+    : user?.name || '—';
+  const displayEmail = profileData?.email || user?.email || '—';
+  const displayPhone = profileData?.telephone || user?.phone || '—';
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.scroll}>
-        {/* Header */}
-        <View style={styles.heroCard}>
-          <View style={styles.avatarLarge}>
-            <Text style={styles.avatarText}>{user?.name?.[0] || '?'}</Text>
+    <SafeAreaView style={[styles.safe, { backgroundColor: Colors.background }]}>
+      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+
+        {/* Avatar hero */}
+        <View style={[styles.heroCard, { backgroundColor: Colors.card, borderColor: Colors.cardBorder }]}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>{displayName?.[0]?.toUpperCase() || '?'}</Text>
           </View>
-          <Text style={styles.name}>{user?.name}</Text>
-          <Text style={styles.email}>{user?.email}</Text>
-          {user?.phone && <Text style={styles.phone}>{user.phone}</Text>}
-          <View style={styles.roleBadge}>
+          <Text style={[styles.name, { color: Colors.text }]}>{displayName}</Text>
+          <Text style={[styles.email, { color: Colors.textSecondary }]}>{displayEmail}</Text>
+          {displayPhone !== '—' && (
+            <Text style={[styles.phone, { color: Colors.textMuted }]}>{displayPhone}</Text>
+          )}
+          <View style={[styles.roleBadge, { backgroundColor: Colors.orangeBg }]}>
             <Ionicons name="person" size={12} color={Colors.orange} />
-            <Text style={styles.roleText}>{user?.role}</Text>
+            <Text style={[styles.roleText, { color: Colors.orange }]}>PASSAGER</Text>
           </View>
         </View>
 
-        {/* Menu items */}
+        {/* Apparence */}
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>COMPTE</Text>
-          <View style={styles.menuGroup}>
-            <MenuItem icon="key" label="Changer de mot de passe" onPress={() => setShowPassForm(!showPassForm)} />
-            <MenuItem icon="notifications" label="Notifications" onPress={() => {}} />
-            <MenuItem icon="shield-checkmark" label="Sécurité" onPress={() => {}} />
+          <Text style={[styles.sectionLabel, { color: Colors.textMuted }]}>APPARENCE</Text>
+          <View style={[styles.menuGroup, { backgroundColor: Colors.card, borderColor: Colors.cardBorder }]}>
+            <View style={[styles.menuItem, { borderBottomColor: Colors.cardBorder }]}>
+              <View style={[styles.menuIcon, { backgroundColor: Colors.orangeBg }]}>
+                <Ionicons name={isDark ? 'moon' : 'sunny'} size={18} color={Colors.orange} />
+              </View>
+              <Text style={[styles.menuLabel, { color: Colors.text }]}>
+                {isDark ? 'Mode sombre' : 'Mode clair'}
+              </Text>
+              <Switch
+                value={isDark}
+                onValueChange={toggleTheme}
+                thumbColor={isDark ? Colors.orange : Colors.textMuted}
+                trackColor={{ false: Colors.input, true: Colors.orangeBg }}
+              />
+            </View>
           </View>
         </View>
 
-        {/* Password form */}
-        {showPassForm && (
-          <View style={styles.passForm}>
-            {(['current', 'next', 'confirm'] as const).map((f, i) => (
-              <TextInput
-                key={f}
-                style={styles.passInput}
-                placeholder={['Mot de passe actuel', 'Nouveau mot de passe', 'Confirmer'][i]}
-                placeholderTextColor={Colors.textMuted}
-                value={passData[f]}
-                onChangeText={v => setPassData(p => ({ ...p, [f]: v }))}
-                secureTextEntry
-              />
-            ))}
+        {/* Compte */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionLabel, { color: Colors.textMuted }]}>MON COMPTE</Text>
+          <View style={[styles.menuGroup, { backgroundColor: Colors.card, borderColor: Colors.cardBorder }]}>
             <TouchableOpacity
-              style={[styles.btnPrimary, changingPass && { opacity: 0.6 }]}
-              onPress={handleChangePassword}
-              disabled={changingPass}
+              style={[styles.menuItem, { borderBottomColor: Colors.cardBorder }]}
+              onPress={() => setShowPassForm(!showPassForm)}
             >
-              {changingPass
-                ? <ActivityIndicator color={Colors.dark} />
-                : <Text style={styles.btnText}>Mettre à jour</Text>
-              }
+              <View style={[styles.menuIcon, { backgroundColor: Colors.orangeBg }]}>
+                <Ionicons name="key" size={18} color={Colors.orange} />
+              </View>
+              <Text style={[styles.menuLabel, { color: Colors.text }]}>Changer le mot de passe</Text>
+              <Ionicons name={showPassForm ? 'chevron-up' : 'chevron-down'} size={16} color={Colors.textMuted} />
+            </TouchableOpacity>
+
+            {showPassForm && (
+              <View style={[styles.passForm, { borderTopColor: Colors.cardBorder }]}>
+                {([
+                  { key: 'current', label: 'Mot de passe actuel' },
+                  { key: 'next', label: 'Nouveau mot de passe' },
+                  { key: 'confirm', label: 'Confirmer' },
+                ] as const).map(f => (
+                  <TextInput
+                    key={f.key}
+                    style={[styles.passInput, { backgroundColor: Colors.input, color: Colors.text, borderColor: Colors.inputBorder }]}
+                    placeholder={f.label}
+                    placeholderTextColor={Colors.textMuted}
+                    value={passData[f.key]}
+                    onChangeText={v => setPassData(p => ({ ...p, [f.key]: v }))}
+                    secureTextEntry
+                    autoCorrect={false}
+                  />
+                ))}
+                <TouchableOpacity
+                  style={[styles.passBtn, changingPass && { opacity: 0.6 }]}
+                  onPress={handleChangePassword}
+                  disabled={changingPass}
+                >
+                  {changingPass ? <ActivityIndicator color="#0D0D0D" size="small" /> : (
+                    <Text style={styles.passBtnText}>Mettre à jour</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            )}
+
+            <TouchableOpacity style={[styles.menuItem, { borderBottomColor: Colors.cardBorder }]}>
+              <View style={[styles.menuIcon, { backgroundColor: Colors.orangeBg }]}>
+                <Ionicons name="notifications" size={18} color={Colors.orange} />
+              </View>
+              <Text style={[styles.menuLabel, { color: Colors.text }]}>Notifications</Text>
+              {notifCount > 0 && (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{notifCount}</Text>
+                </View>
+              )}
+              <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
+            </TouchableOpacity>
+
+            <TouchableOpacity style={[styles.menuItem, { borderBottomColor: Colors.cardBorder }]}>
+              <View style={[styles.menuIcon, { backgroundColor: Colors.orangeBg }]}>
+                <Ionicons name="help-circle" size={18} color={Colors.orange} />
+              </View>
+              <Text style={[styles.menuLabel, { color: Colors.text }]}>Aide & Support</Text>
+              <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
+            </TouchableOpacity>
+
+            <TouchableOpacity style={[styles.menuItem, { borderBottomColor: 'transparent' }]} onPress={handleLogout}>
+              <View style={[styles.menuIcon, { backgroundColor: Colors.redBg }]}>
+                <Ionicons name="log-out" size={18} color={Colors.red} />
+              </View>
+              <Text style={[styles.menuLabel, { color: Colors.red }]}>Déconnexion</Text>
+              <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
             </TouchableOpacity>
           </View>
-        )}
-
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>APPLICATION</Text>
-          <View style={styles.menuGroup}>
-            <MenuItem icon="help-circle" label="Aide & Support" onPress={() => {}} />
-            <MenuItem icon="document-text" label="Conditions d'utilisation" onPress={() => {}} />
-            <MenuItem icon="log-out" label="Déconnexion" onPress={handleLogout} danger />
-          </View>
         </View>
 
-        <Text style={styles.version}>RidnGo v1.0.0 — Yowyob Inc. Ltd.</Text>
+        <Text style={[styles.version, { color: Colors.textMuted }]}>RidnGo v1.0.0 — Yowyob Inc. Ltd.</Text>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.dark },
+  safe: { flex: 1 },
   scroll: { padding: Spacing.lg, gap: Spacing.lg, paddingBottom: 100 },
   heroCard: {
-    backgroundColor: Colors.card, borderRadius: Radius.xl, padding: Spacing.xl,
-    alignItems: 'center', gap: 8, borderWidth: 1, borderColor: Colors.cardBorder,
+    borderRadius: Radius.xl, padding: Spacing.xl,
+    alignItems: 'center', gap: 8, borderWidth: 1,
   },
-  avatarLarge: {
-    width: 80, height: 80, borderRadius: 40, backgroundColor: Colors.orange,
+  avatar: {
+    width: 76, height: 76, borderRadius: 38, backgroundColor: '#FF8C00',
     alignItems: 'center', justifyContent: 'center',
-    shadowColor: Colors.orange, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.4, elevation: 8,
+    shadowColor: '#FF8C00', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.35, elevation: 8,
   },
-  avatarText: { color: Colors.white, fontWeight: '900', fontSize: 32 },
-  name: { color: Colors.white, fontWeight: '900', fontSize: 22, letterSpacing: -0.3 },
-  email: { color: Colors.textSecondary, fontSize: 13 },
-  phone: { color: Colors.textMuted, fontSize: 13 },
-  roleBadge: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    backgroundColor: Colors.orangeBg, paddingHorizontal: 12, paddingVertical: 6, borderRadius: Radius.full, marginTop: 4,
-  },
-  roleText: { color: Colors.orange, fontWeight: '900', fontSize: 11, letterSpacing: 1 },
+  avatarText: { color: 'white', fontWeight: '900', fontSize: 30 },
+  name: { fontWeight: '900', fontSize: 22, letterSpacing: -0.3 },
+  email: { fontSize: 13, fontWeight: '500' },
+  phone: { fontSize: 13, fontWeight: '500' },
+  roleBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: Radius.full },
+  roleText: { fontWeight: '900', fontSize: 10, letterSpacing: 1 },
   section: { gap: 8 },
-  sectionLabel: { color: Colors.textMuted, fontWeight: '900', fontSize: 10, letterSpacing: 3, paddingLeft: 4 },
-  menuGroup: {
-    backgroundColor: Colors.card, borderRadius: Radius.xl,
-    borderWidth: 1, borderColor: Colors.cardBorder, overflow: 'hidden',
-  },
-  menuItem: {
-    flexDirection: 'row', alignItems: 'center', gap: 14,
-    padding: Spacing.md, borderBottomWidth: 1, borderBottomColor: Colors.cardBorder,
-  },
-  menuIcon: {
-    width: 36, height: 36, borderRadius: 10, backgroundColor: Colors.orangeBg,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  menuIconDanger: { backgroundColor: Colors.redBg },
-  menuLabel: { flex: 1, color: Colors.white, fontWeight: '700', fontSize: 14 },
-  passForm: {
-    backgroundColor: Colors.card, borderRadius: Radius.xl, padding: Spacing.lg,
-    gap: Spacing.md, borderWidth: 1, borderColor: Colors.cardBorder,
-  },
-  passInput: {
-    backgroundColor: Colors.input, borderRadius: Radius.md, padding: 14,
-    color: Colors.white, fontWeight: '700', fontSize: 14,
-    borderWidth: 1, borderColor: Colors.inputBorder,
-  },
-  btnPrimary: {
-    backgroundColor: Colors.orange, borderRadius: Radius.lg, paddingVertical: 16,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  btnText: { color: Colors.dark, fontWeight: '900', fontSize: 14, textTransform: 'uppercase', letterSpacing: 1 },
-  version: { color: Colors.textMuted, fontSize: 11, textAlign: 'center', fontStyle: 'italic' },
+  sectionLabel: { fontWeight: '900', fontSize: 10, letterSpacing: 3, paddingLeft: 4 },
+  menuGroup: { borderRadius: Radius.xl, borderWidth: 1, overflow: 'hidden' },
+  menuItem: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: Spacing.md, borderBottomWidth: 1 },
+  menuIcon: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  menuLabel: { flex: 1, fontWeight: '700', fontSize: 14 },
+  badge: { backgroundColor: '#FF8C00', minWidth: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 5 },
+  badgeText: { color: 'white', fontWeight: '900', fontSize: 10 },
+  passForm: { padding: Spacing.md, gap: Spacing.sm, borderTopWidth: 1 },
+  passInput: { borderRadius: Radius.md, padding: 14, fontWeight: '700', fontSize: 14, borderWidth: 1 },
+  passBtn: { backgroundColor: '#FF8C00', borderRadius: Radius.md, paddingVertical: 14, alignItems: 'center' },
+  passBtnText: { color: '#0D0D0D', fontWeight: '900', fontSize: 13, textTransform: 'uppercase', letterSpacing: 1 },
+  version: { fontSize: 11, textAlign: 'center', fontStyle: 'italic' },
 });
