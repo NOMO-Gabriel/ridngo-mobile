@@ -221,9 +221,14 @@ export default function RideScreen() {
 
         {/* SEARCH STEP */}
         {step === 'search' && (
-          <View style={styles.stepContent}>
+          <ScrollView
+            style={{ overflow: 'visible' }}
+            contentContainerStyle={[styles.stepContent, { paddingBottom: 8 }]}
+            keyboardShouldPersistTaps="always"
+            scrollEnabled={false}
+          >
             <Text style={[styles.stepTitle, { color: Colors.text }]}>Où allez-vous ?</Text>
-            <View style={styles.inputsWrap}>
+            <View style={[styles.inputsWrap, { overflow: 'visible' }]}>
               <View style={styles.inputLine}>
                 <View style={[styles.dot, { backgroundColor: Colors.orange }]} />
                 <View style={{ flex: 1, zIndex: 10 }}>
@@ -255,12 +260,13 @@ export default function RideScreen() {
               style={[styles.btnPrimary, (!pickup || !dest || loading) && styles.btnDisabled]}
               onPress={handleEstimate}
               disabled={!pickup || !dest || loading}
+              activeOpacity={0.8}
             >
               {loading ? <ActivityIndicator color="#0D0D0D" /> : (
                 <><Text style={styles.btnText}>Estimer le prix</Text><Ionicons name="arrow-forward" size={18} color="#0D0D0D" /></>
               )}
             </TouchableOpacity>
-          </View>
+          </ScrollView>
         )}
 
         {/* PRICE STEP */}
@@ -423,9 +429,8 @@ const styles = StyleSheet.create({
     position: 'absolute', bottom: 0, left: 0, right: 0,
     borderTopLeftRadius: 28, borderTopRightRadius: 28,
     borderWidth: 1, borderBottomWidth: 0,
-    paddingTop: 12, paddingHorizontal: Spacing.lg, paddingBottom: 24,
+    paddingTop: 12, paddingHorizontal: Spacing.lg, paddingBottom: 32,
     shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.15, elevation: 20,
-    maxHeight: SCREEN_HEIGHT * 0.72,
   },
   panelHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.md },
   logoRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
@@ -433,10 +438,10 @@ const styles = StyleSheet.create({
   logoLetter: { color: 'white', fontWeight: '900', fontSize: 16, fontStyle: 'italic' },
   logoText: { fontWeight: '900', fontSize: 16, letterSpacing: -0.3 },
   userTag: { fontWeight: '900', fontSize: 9, letterSpacing: 2 },
-  stepContent: { gap: Spacing.md },
+  stepContent: { gap: Spacing.md, overflow: 'visible' },
   stepTitle: { fontWeight: '900', fontSize: 22, letterSpacing: -0.5 },
   stepSub: { fontWeight: '600', fontSize: 12 },
-  inputsWrap: { gap: 4 },
+  inputsWrap: { gap: 4, overflow: 'visible' },
   inputLine: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   dot: { width: 10, height: 10, borderRadius: 5 },
   connector: { width: 2, height: 14, marginLeft: 4 },

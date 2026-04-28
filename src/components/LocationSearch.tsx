@@ -83,7 +83,7 @@ export function LocationSearch({ placeholder, value, onSelect, icon = 'navigate'
   };
 
   return (
-    <View>
+    <View style={{ overflow: 'visible' }}>
       <View style={[styles.row, { backgroundColor: Colors.input, borderColor: focused ? Colors.orange : Colors.inputBorder }]}>
         <Ionicons name={icon as any} size={18} color={focused ? Colors.orange : Colors.textMuted} style={styles.icon} />
         <TextInput
@@ -147,10 +147,10 @@ const styles = StyleSheet.create({
   loader: { marginRight: 8 },
   gpsBtn: { padding: 6 },
   dropdown: {
-    position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 999,
+    position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 9999,
     borderRadius: Radius.md, marginTop: 4,
     borderWidth: 1,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, elevation: 10,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, elevation: 50,
   },
   resultItem: {
     flexDirection: 'row', alignItems: 'flex-start', gap: 8,
