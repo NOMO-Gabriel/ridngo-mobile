@@ -1,0 +1,80 @@
+{
+  "expo": {
+    "name": "RidnGo",
+    "slug": "ridengo",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FF8C00"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.yowyob.ridngo",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "RidnGo utilise votre position pour afficher les chauffeurs proches et pour le suivi de course.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "RidnGo utilise votre position en arrière-plan pour le suivi GPS en tant que chauffeur.",
+        "NSCameraUsageDescription": "Pour prendre votre photo de profil.",
+        "NSPhotoLibraryUsageDescription": "Pour choisir votre photo de profil."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FF8C00"
+      },
+      "package": "com.yowyob.ridngo",
+      "permissions": [
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_BACKGROUND_LOCATION",
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.RECORD_AUDIO"
+      ],
+      "config": {
+        "googleMaps": {
+          "apiKey": "YOUR_GOOGLE_MAPS_API_KEY"
+        }
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "RidnGo utilise votre position pour le suivi GPS."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Pour choisir votre photo de profil.",
+          "cameraPermission": "Pour prendre votre photo de profil."
+        }
+      ]
+    ],
+    "scheme": "ridngo",
+    "extra": {
+      "eas": {
+        "projectId": "abcdfabf-967b-423a-9ebd-552147959f52"
+      },
+      "router": {
+        "origin": false
+      }
+    },
+    "owner": "nomo-gabriel"
+  }
+}
