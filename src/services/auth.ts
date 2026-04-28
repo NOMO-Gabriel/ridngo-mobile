@@ -8,7 +8,11 @@ export const authService = {
       const response = await api.post<AuthResponse>('/api/v1/auth/login', { identifier, password });
       return await finalizeSession(response.data);
     } catch (error: any) {
-      return { success: false, message: error.response?.data?.message || "Identifiants invalides" };
+      const msg = error.response?.data?.message
+        || error.response?.data?.error
+        || error.message
+        || "Identifiants invalides";
+      return { success: false, message: msg };
     }
   },
 
@@ -23,7 +27,6 @@ export const authService = {
     photo?: any;
   }): Promise<{ success: boolean; role?: string; message?: string }> => {
     try {
-      const formData = new FormData();
       const registerDto = {
         username: data.username,
         password: data.password,
@@ -33,7 +36,12 @@ export const authService = {
         lastName: data.lastName,
         roles: [data.role],
       };
-      formData.append('data', JSON.stringify(registerDto));
+
+      // Backend always requires multipart/form-data with a "data" JSON part
+      const formData = new FormData();
+      const blob = new Blob([JSON.stringify(registerDto)], { type: 'application/json' });
+      formData.append('data', blob as any);
+
       if (data.photo) {
         formData.append('file', {
           uri: data.photo.uri,
@@ -41,12 +49,19 @@ export const authService = {
           type: data.photo.mimeType || 'image/jpeg',
         } as any);
       }
+
       const response = await api.post<AuthResponse>('/api/v1/auth/register', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
+
       return await finalizeSession(response.data);
     } catch (error: any) {
-      return { success: false, message: error.response?.data?.message || "Erreur lors de l'inscription" };
+      const msg = error.response?.data?.message
+        || error.response?.data?.error
+        || (typeof error.response?.data === 'string' ? error.response.data : null)
+        || error.message
+        || "Erreur lors de l'inscription";
+      return { success: false, message: typeof msg === 'string' ? msg : JSON.stringify(msg) };
     }
   },
 
@@ -71,21 +86,30 @@ export const authService = {
   },
 };
 
-const finalizeSession = async (authData: AuthResponse): Promise<{ success: boolean; role: string; message?: string }> => {
+const finalizeSession = async (authData: AuthResponse): Promise<{ success: boolean; role: string }> => {
   if (!authData.accessToken) throw new Error('Token manquant');
   await SecureStore.setItemAsync('accessToken', authData.accessToken);
   if (authData.refreshToken) await SecureStore.setItemAsync('refreshToken', authData.refreshToken);
 
-  const isDriver = authData.roles.includes('RIDE_AND_GO_DRIVER');
-  const profileRes = await api.get(isDriver ? '/api/v1/users/me/driver-profile' : '/api/v1/users/me');
-  const userProfile = isDriver ? profileRes.data.user : profileRes.data;
+  const isDriver = authData.roles?.includes('RIDE_AND_GO_DRIVER');
+  const isAdmin = authData.roles?.includes('RIDE_AND_GO_ADMIN');
+
+  let userProfile: any = {};
+  try {
+    const profileRes = await api.get(isDriver ? '/api/v1/users/me/driver-profile' : '/api/v1/users/me');
+    userProfile = isDriver ? (profileRes.data.user || profileRes.data) : profileRes.data;
+  } catch {
+    userProfile = { id: authData.username, email: '', name: authData.username };
+  }
 
   const userObj: UserObj = {
-    id: userProfile.id,
-    name: userProfile.name || `${userProfile.firstName} ${userProfile.lastName}`,
-    email: userProfile.email,
+    id: userProfile.id || authData.username,
+    name: userProfile.name
+      || `${userProfile.firstName || ''} ${userProfile.lastName || ''}`.trim()
+      || authData.username,
+    email: userProfile.email || '',
     phone: userProfile.telephone,
-    role: isDriver ? 'DRIVER' : authData.roles.includes('RIDE_AND_GO_ADMIN') ? 'ADMIN' : 'PASSENGER',
+    role: isDriver ? 'DRIVER' : isAdmin ? 'ADMIN' : 'PASSENGER',
   };
 
   await SecureStore.setItemAsync('user', JSON.stringify(userObj));
