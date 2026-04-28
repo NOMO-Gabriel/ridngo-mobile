@@ -8,39 +8,25 @@ export const authService = {
       const response = await api.post<AuthResponse>('/api/v1/auth/login', { identifier, password });
       return await finalizeSession(response.data);
     } catch (error: any) {
-      const msg = error.response?.data?.message
-        || error.response?.data?.error
-        || error.message
-        || "Identifiants invalides";
+      const msg = error.response?.data?.message || error.response?.data?.error || error.message || "Identifiants invalides";
       return { success: false, message: msg };
     }
   },
 
   register: async (data: {
-    username: string;
-    password: string;
-    email: string;
-    phone: string;
-    firstName: string;
-    lastName: string;
-    role: UserRole;
-    photo?: any;
+    username: string; password: string; email: string; phone: string;
+    firstName: string; lastName: string; role: UserRole; photo?: any;
   }): Promise<{ success: boolean; role?: string; message?: string }> => {
     try {
-      const registerDto = {
-        username: data.username,
-        password: data.password,
-        email: data.email,
-        phone: data.phone,
-        firstName: data.firstName,
-        lastName: data.lastName,
+      const registerDto = JSON.stringify({
+        username: data.username, password: data.password, email: data.email,
+        phone: data.phone, firstName: data.firstName, lastName: data.lastName,
         roles: [data.role],
-      };
+      });
 
-      // Backend always requires multipart/form-data with a "data" JSON part
+      // React Native FormData - no Blob support, use string directly
       const formData = new FormData();
-      const blob = new Blob([JSON.stringify(registerDto)], { type: 'application/json' });
-      formData.append('data', blob as any);
+      formData.append('data', registerDto);
 
       if (data.photo) {
         formData.append('file', {
@@ -52,6 +38,7 @@ export const authService = {
 
       const response = await api.post<AuthResponse>('/api/v1/auth/register', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
+        transformRequest: (data) => data, // prevent axios from re-serializing FormData
       });
 
       return await finalizeSession(response.data);
@@ -75,9 +62,7 @@ export const authService = {
     try {
       const raw = await SecureStore.getItemAsync('user');
       return raw ? JSON.parse(raw) : null;
-    } catch {
-      return null;
-    }
+    } catch { return null; }
   },
 
   isAuthenticated: async (): Promise<boolean> => {
@@ -104,9 +89,7 @@ const finalizeSession = async (authData: AuthResponse): Promise<{ success: boole
 
   const userObj: UserObj = {
     id: userProfile.id || authData.username,
-    name: userProfile.name
-      || `${userProfile.firstName || ''} ${userProfile.lastName || ''}`.trim()
-      || authData.username,
+    name: userProfile.name || `${userProfile.firstName || ''} ${userProfile.lastName || ''}`.trim() || authData.username,
     email: userProfile.email || '',
     phone: userProfile.telephone,
     role: isDriver ? 'DRIVER' : isAdmin ? 'ADMIN' : 'PASSENGER',

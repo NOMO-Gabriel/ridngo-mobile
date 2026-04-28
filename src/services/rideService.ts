@@ -6,14 +6,7 @@ import {
 
 export const rideService = {
   estimateFare: async (pickup: string, destination: string): Promise<FareResponse> => {
-    const body = {
-      depart: pickup,
-      arrivee: destination,
-      heure: 'matin',
-      meteo: 0,
-      type_zone: 0,
-      congestion_user: 1,
-    };
+    const body = { depart: pickup, arrivee: destination, heure: 'matin', meteo: 0, type_zone: 0, congestion_user: 1 };
     const response = await api.post<FareResponse>('/api/v1/fares/estimate', body);
     return response.data;
   },
@@ -58,6 +51,11 @@ export const rideService = {
     return response.data;
   },
 
+  completeRide: async (rideId: string): Promise<RideResponse> => {
+    const response = await api.patch<RideResponse>(`/api/v1/trips/${rideId}/status`, { status: 'COMPLETED' });
+    return response.data;
+  },
+
   postReview: async (rideId: string, stars: number, comment: string) => {
     const response = await api.post(`/api/v1/reviews/ride/${rideId}`, { stars, comment });
     return response.data;
@@ -94,9 +92,7 @@ export const rideService = {
     try {
       const res = await api.get<RideResponse>('/api/v1/trips/driver/current');
       return res.data;
-    } catch {
-      return null;
-    }
+    } catch { return null; }
   },
 
   getCurrentPassengerRide: async (): Promise<RideResponse | null> => {
@@ -105,18 +101,14 @@ export const rideService = {
       const latest = response.data[0];
       if (latest && (latest.state === 'CREATED' || latest.state === 'ONGOING')) return latest;
       return null;
-    } catch {
-      return null;
-    }
+    } catch { return null; }
   },
 
   updateLocation: async (lat: number, lon: number): Promise<boolean> => {
     try {
       await api.post('/api/v1/location', { latitude: lat, longitude: lon });
       return true;
-    } catch {
-      return false;
-    }
+    } catch { return false; }
   },
 
   getMyTrajectories: async (): Promise<DriverTrajectory[]> => {
