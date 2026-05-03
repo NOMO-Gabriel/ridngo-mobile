@@ -1,5 +1,5 @@
 === RidnGo Mobile - Project Context Scan ===
-Date: 04/28/2026 06:46:09
+Date: 05/03/2026 14:48:50
 
 
 ========================================
@@ -1540,6 +1540,7 @@ const styles = StyleSheet.create({
 
 
 ========================================
+FILE: app\(driver)\_layout.tsx
 ========================================
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -1606,14 +1607,44 @@ FILE: app\(passenger)\history.tsx
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, SafeAreaView, FlatList,
-  ActivityIndicator, TouchableOpacity, RefreshControl
+  ActivityIndicator, TouchableOpacity, RefreshControl, Dimensions
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { WebView } from 'react-native-webview';
 import { rideService } from '../../src/services/rideService';
-import { Colors, Spacing, Radius } from '../../src/types/theme';
+import { useTheme } from '../../src/context/ThemeContext';
+import { Spacing, Radius } from '../../src/types/theme';
 import { RideResponse } from '../../src/types/api';
 
+const { width: SW } = Dimensions.get('window');
+
+const buildMiniMap = (startLat?: number, startLon?: number, endLat?: number, endLon?: number, dark = false) => {
+  if (!startLat || !startLon) return null;
+  const bg = dark ? '#1a1a1a' : '#f0f0f0';
+  const endMarker = endLat && endLon
+    ? `L.marker([${endLat},${endLon}],{icon:blueIcon}).addTo(map);`
+    : '';
+  const bounds = endLat && endLon
+    ? `map.fitBounds([[${startLat},${startLon}],[${endLat},${endLon}]],{padding:[20,20]});`
+    : `map.setView([${startLat},${startLon}],14);`;
+  return `<!DOCTYPE html><html><head>
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>html,body,#map{margin:0;padding:0;width:100%;height:100%;background:${bg};}</style>
+</head><body><div id="map"></div><script>
+var map=L.map('map',{zoomControl:false,attributionControl:false,dragging:false,scrollWheelZoom:false}).setView([${startLat},${startLon}],13);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+var orangeIcon=L.divIcon({html:'<div style="width:10px;height:10px;border-radius:50%;background:#FF8C00;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.5)"></div>',iconSize:[10,10],className:''});
+var blueIcon=L.divIcon({html:'<div style="width:10px;height:10px;border-radius:50%;background:#3B82F6;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.5)"></div>',iconSize:[10,10],className:''});
+L.marker([${startLat},${startLon}],{icon:orangeIcon}).addTo(map);
+${endMarker}
+${bounds}
+</script></body></html>`;
+};
+
 export default function HistoryScreen() {
+  const { Colors, isDark } = useTheme();
   const [rides, setRides] = useState<RideResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -1628,73 +1659,88 @@ export default function HistoryScreen() {
     finally { setLoading(false); setRefreshing(false); }
   };
 
-  const onRefresh = () => { setRefreshing(true); load(); };
-
-  const RideCard = ({ item }: { item: RideResponse }) => (
-    <View style={styles.card}>
-      <View style={styles.cardTop}>
-        <View style={styles.avatar}>
-          <Ionicons name="person" size={20} color={Colors.white} />
-        </View>
-        <View style={styles.cardTopInfo}>
-          <Text style={styles.cardDate}>
-            {item.createdAt ? new Date(item.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Date inconnue'}
-          </Text>
-          <View style={[styles.stateBadge, item.state === 'COMPLETED' ? styles.badgeGreen : styles.badgeRed]}>
-            <Text style={[styles.stateText, item.state === 'COMPLETED' ? styles.textGreen : styles.textRed]}>
-              {item.state}
-            </Text>
-          </View>
-        </View>
-        <Text style={styles.price}>{item.price} F</Text>
-      </View>
-
-      <View style={styles.route}>
-        <View style={styles.routeRow}>
-          <View style={styles.dotOrange} />
-          <Text style={styles.routeText} numberOfLines={1}>{item.startPoint || '—'}</Text>
-        </View>
-        <View style={styles.routeLine} />
-        <View style={styles.routeRow}>
-          <View style={styles.dotWhite} />
-          <Text style={styles.routeText} numberOfLines={1}>{item.endPoint || '—'}</Text>
-        </View>
-      </View>
-
-      {item.distance != null && (
-        <View style={styles.footer}>
-          <Ionicons name="car" size={13} color={Colors.orange} />
-          <Text style={styles.footerText}>{item.distance.toFixed(1)} km</Text>
-        </View>
-      )}
-    </View>
-  );
-
   if (loading) return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: Colors.background }]}>
       <View style={styles.centered}>
         <ActivityIndicator color={Colors.orange} size="large" />
-        <Text style={styles.loadingText}>Chargement...</Text>
       </View>
     </SafeAreaView>
   );
 
+  const RideCard = ({ item }: { item: RideResponse }) => {
+    const mapHtml = buildMiniMap(
+      item.startLat, item.startLon, item.endLat, item.endLon, isDark
+    );
+    const isCompleted = item.state === 'COMPLETED';
+
+    return (
+      <View style={[styles.card, { backgroundColor: Colors.card, borderColor: Colors.cardBorder }]}>
+        {/* Mini map */}
+        {mapHtml && (
+          <View style={styles.miniMapContainer}>
+            <WebView
+              source={{ html: mapHtml }}
+              style={styles.miniMap}
+              scrollEnabled={false}
+              javaScriptEnabled
+              pointerEvents="none"
+            />
+            <View style={[styles.stateBadgeOverlay, { backgroundColor: isCompleted ? Colors.greenBg : Colors.redBg }]}>
+              <Text style={[styles.stateTextOverlay, { color: isCompleted ? Colors.green : Colors.red }]}>
+                {isCompleted ? 'Terminée' : item.state}
+              </Text>
+            </View>
+          </View>
+        )}
+
+        <View style={styles.cardBody}>
+          <View style={styles.routeBlock}>
+            <View style={styles.routeRow}>
+              <View style={[styles.dot, { backgroundColor: Colors.orange }]} />
+              <Text style={[styles.routeText, { color: Colors.text }]} numberOfLines={1}>
+                {item.startPoint || '—'}
+              </Text>
+            </View>
+            <View style={[styles.routeLine, { backgroundColor: Colors.cardBorder }]} />
+            <View style={styles.routeRow}>
+              <View style={[styles.dot, { backgroundColor: Colors.blue }]} />
+              <Text style={[styles.routeText, { color: Colors.text }]} numberOfLines={1}>
+                {item.endPoint || '—'}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.cardFooter}>
+            <Text style={[styles.dateText, { color: Colors.textMuted }]}>
+              {item.createdAt
+                ? new Date(item.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
+                : '—'}
+            </Text>
+            <Text style={[styles.priceText, { color: Colors.orange }]}>{item.price?.toLocaleString()} F</Text>
+          </View>
+        </View>
+      </View>
+    );
+  };
+
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.pageHeader}>
-        <Text style={styles.pageTitle}>Mes Voyages</Text>
-        <Text style={styles.pageTag}>HISTORIQUE COMPLET</Text>
+    <SafeAreaView style={[styles.safe, { backgroundColor: Colors.background }]}>
+      <View style={[styles.header, { borderBottomColor: Colors.cardBorder }]}>
+        <View>
+          <Text style={[styles.title, { color: Colors.text }]}>Mes Voyages</Text>
+          <Text style={[styles.tag, { color: Colors.textMuted }]}>{rides.length} COURSE(S)</Text>
+        </View>
       </View>
 
       <FlatList
         data={rides}
-        keyExtractor={(item, i) => (item.id || item.rideId || String(i))}
+        keyExtractor={(item, i) => item.id || item.rideId || String(i)}
         contentContainerStyle={styles.list}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.orange} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={Colors.orange} />}
         ListEmptyComponent={
           <View style={styles.empty}>
             <Ionicons name="calendar-outline" size={48} color={Colors.textMuted} />
-            <Text style={styles.emptyText}>Aucune course enregistrée</Text>
+            <Text style={[styles.emptyText, { color: Colors.textMuted }]}>Aucune course enregistrée</Text>
           </View>
         }
         renderItem={({ item }) => <RideCard item={item} />}
@@ -1704,68 +1750,77 @@ export default function HistoryScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.dark },
-  centered: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 },
-  loadingText: { color: Colors.textMuted, fontWeight: '700', fontSize: 11, textTransform: 'uppercase', letterSpacing: 1 },
-  pageHeader: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.lg, paddingBottom: Spacing.md },
-  pageTitle: { color: Colors.white, fontWeight: '900', fontSize: 30, letterSpacing: -0.5, fontStyle: 'italic' },
-  pageTag: { color: Colors.textMuted, fontWeight: '900', fontSize: 10, letterSpacing: 3, marginTop: 2 },
+  safe: { flex: 1 },
+  centered: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  header: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.lg, paddingBottom: Spacing.md, borderBottomWidth: 1 },
+  title: { fontWeight: '900', fontSize: 28, letterSpacing: -0.5 },
+  tag: { fontWeight: '900', fontSize: 10, letterSpacing: 3, marginTop: 2 },
   list: { padding: Spacing.lg, gap: Spacing.md, paddingBottom: 100 },
-  card: {
-    backgroundColor: Colors.card, borderRadius: Radius.xl,
-    padding: Spacing.lg, borderWidth: 1, borderColor: Colors.cardBorder, gap: 12,
+  card: { borderRadius: Radius.xl, borderWidth: 1, overflow: 'hidden' },
+  miniMapContainer: { height: 130, position: 'relative' },
+  miniMap: { height: 130 },
+  stateBadgeOverlay: {
+    position: 'absolute', top: 10, right: 10,
+    paddingHorizontal: 10, paddingVertical: 5, borderRadius: Radius.full,
   },
-  cardTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  avatar: { width: 42, height: 42, borderRadius: 14, backgroundColor: Colors.orange, alignItems: 'center', justifyContent: 'center' },
-  cardTopInfo: { flex: 1 },
-  cardDate: { color: Colors.white, fontWeight: '700', fontSize: 13 },
-  stateBadge: { alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 3, borderRadius: Radius.full, marginTop: 4 },
-  badgeGreen: { backgroundColor: Colors.greenBg },
-  badgeRed: { backgroundColor: Colors.redBg },
-  stateText: { fontWeight: '900', fontSize: 9, letterSpacing: 1 },
-  textGreen: { color: Colors.green },
-  textRed: { color: Colors.red },
-  price: { color: Colors.orange, fontWeight: '900', fontSize: 18, fontStyle: 'italic' },
-  route: { backgroundColor: Colors.input, borderRadius: Radius.md, padding: 12, gap: 4 },
+  stateTextOverlay: { fontWeight: '900', fontSize: 10, letterSpacing: 1 },
+  cardBody: { padding: Spacing.md, gap: Spacing.sm },
+  routeBlock: { gap: 4 },
   routeRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  routeLine: { width: 2, height: 12, backgroundColor: Colors.cardBorder, marginLeft: 4 },
-  dotOrange: { width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.orange },
-  dotWhite: { width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.white },
-  routeText: { flex: 1, color: Colors.white, fontWeight: '600', fontSize: 13 },
-  footer: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  footerText: { color: Colors.textMuted, fontWeight: '700', fontSize: 12 },
-  empty: { alignItems: 'center', justifyContent: 'center', gap: 12, paddingTop: 80 },
-  emptyText: { color: Colors.textMuted, fontWeight: '700', fontSize: 14, fontStyle: 'italic' },
+  dot: { width: 8, height: 8, borderRadius: 4 },
+  routeLine: { width: 2, height: 10, marginLeft: 3 },
+  routeText: { flex: 1, fontWeight: '600', fontSize: 13 },
+  cardFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  dateText: { fontWeight: '700', fontSize: 12 },
+  priceText: { fontWeight: '900', fontSize: 16, fontStyle: 'italic' },
+  empty: { alignItems: 'center', gap: 12, paddingTop: 80 },
+  emptyText: { fontWeight: '700', fontSize: 14 },
 });
 
 
 ========================================
 FILE: app\(passenger)\profile.tsx
 ========================================
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, SafeAreaView, ScrollView,
-  TouchableOpacity, TextInput, Alert, ActivityIndicator
+  TouchableOpacity, TextInput, Alert, ActivityIndicator, Switch
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useAuth } from '../../src/context/AuthContext';
+import { useTheme } from '../../src/context/ThemeContext';
 import { userService } from '../../src/services/userService';
-import { Colors, Spacing, Radius } from '../../src/types/theme';
+import { Spacing, Radius } from '../../src/types/theme';
 
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
-  const [changingPass, setChangingPass] = useState(false);
+  const { Colors, isDark, toggleTheme } = useTheme();
   const [showPassForm, setShowPassForm] = useState(false);
+  const [changingPass, setChangingPass] = useState(false);
   const [passData, setPassData] = useState({ current: '', next: '', confirm: '' });
+  const [notifCount, setNotifCount] = useState(0);
+  const [loadingProfile, setLoadingProfile] = useState(true);
+  const [profileData, setProfileData] = useState<any>(null);
 
-  const handleLogout = async () => {
+  useEffect(() => { loadProfile(); }, []);
+
+  const loadProfile = async () => {
+    try {
+      const data = await userService.getMe();
+      setProfileData(data);
+      // Load unread notifications count
+      const notifs = await userService.getNotifications(0, 20);
+      const unread = Array.isArray(notifs) ? notifs.filter((n: any) => !n.read).length : 0;
+      setNotifCount(unread);
+    } catch { /* ignore */ }
+    finally { setLoadingProfile(false); }
+  };
+
+  const handleLogout = () => {
     Alert.alert('Déconnexion', 'Voulez-vous vous déconnecter ?', [
       { text: 'Annuler' },
-      {
-        text: 'Déconnexion', style: 'destructive',
-        onPress: async () => { await logout(); router.replace('/'); }
-      }
+      { text: 'Déconnexion', style: 'destructive', onPress: async () => { await logout(); router.replace('/'); } }
     ]);
   };
 
@@ -1776,150 +1831,180 @@ export default function ProfileScreen() {
     if (passData.next !== passData.confirm) {
       Alert.alert('Erreur', 'Les mots de passe ne correspondent pas'); return;
     }
+    if (passData.next.length < 6) {
+      Alert.alert('Erreur', 'Minimum 6 caractères'); return;
+    }
     setChangingPass(true);
     try {
       await userService.changePassword(passData.current, passData.next);
-      Alert.alert('✅', 'Mot de passe mis à jour');
+      Alert.alert('✅', 'Mot de passe mis à jour avec succès');
       setShowPassForm(false);
       setPassData({ current: '', next: '', confirm: '' });
-    } catch {
-      Alert.alert('Erreur', 'Impossible de changer le mot de passe.');
-    } finally {
-      setChangingPass(false);
-    }
+    } catch (e: any) {
+      Alert.alert('Erreur', e.response?.data?.message || 'Impossible de changer le mot de passe.');
+    } finally { setChangingPass(false); }
   };
 
-  const MenuItem = ({ icon, label, onPress, danger = false }: any) => (
-    <TouchableOpacity style={styles.menuItem} onPress={onPress}>
-      <View style={[styles.menuIcon, danger && styles.menuIconDanger]}>
-        <Ionicons name={icon} size={20} color={danger ? Colors.red : Colors.orange} />
-      </View>
-      <Text style={[styles.menuLabel, danger && { color: Colors.red }]}>{label}</Text>
-      <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />
-    </TouchableOpacity>
-  );
+  const displayName = profileData
+    ? `${profileData.firstName || ''} ${profileData.lastName || ''}`.trim() || profileData.username
+    : user?.name || '—';
+  const displayEmail = profileData?.email || user?.email || '—';
+  const displayPhone = profileData?.telephone || user?.phone || '—';
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.scroll}>
-        {/* Header */}
-        <View style={styles.heroCard}>
-          <View style={styles.avatarLarge}>
-            <Text style={styles.avatarText}>{user?.name?.[0] || '?'}</Text>
+    <SafeAreaView style={[styles.safe, { backgroundColor: Colors.background }]}>
+      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+
+        {/* Avatar hero */}
+        <View style={[styles.heroCard, { backgroundColor: Colors.card, borderColor: Colors.cardBorder }]}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>{displayName?.[0]?.toUpperCase() || '?'}</Text>
           </View>
-          <Text style={styles.name}>{user?.name}</Text>
-          <Text style={styles.email}>{user?.email}</Text>
-          {user?.phone && <Text style={styles.phone}>{user.phone}</Text>}
-          <View style={styles.roleBadge}>
+          <Text style={[styles.name, { color: Colors.text }]}>{displayName}</Text>
+          <Text style={[styles.email, { color: Colors.textSecondary }]}>{displayEmail}</Text>
+          {displayPhone !== '—' && (
+            <Text style={[styles.phone, { color: Colors.textMuted }]}>{displayPhone}</Text>
+          )}
+          <View style={[styles.roleBadge, { backgroundColor: Colors.orangeBg }]}>
             <Ionicons name="person" size={12} color={Colors.orange} />
-            <Text style={styles.roleText}>{user?.role}</Text>
+            <Text style={[styles.roleText, { color: Colors.orange }]}>PASSAGER</Text>
           </View>
         </View>
 
-        {/* Menu items */}
+        {/* Apparence */}
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>COMPTE</Text>
-          <View style={styles.menuGroup}>
-            <MenuItem icon="key" label="Changer de mot de passe" onPress={() => setShowPassForm(!showPassForm)} />
-            <MenuItem icon="notifications" label="Notifications" onPress={() => {}} />
-            <MenuItem icon="shield-checkmark" label="Sécurité" onPress={() => {}} />
+          <Text style={[styles.sectionLabel, { color: Colors.textMuted }]}>APPARENCE</Text>
+          <View style={[styles.menuGroup, { backgroundColor: Colors.card, borderColor: Colors.cardBorder }]}>
+            <View style={[styles.menuItem, { borderBottomColor: Colors.cardBorder }]}>
+              <View style={[styles.menuIcon, { backgroundColor: Colors.orangeBg }]}>
+                <Ionicons name={isDark ? 'moon' : 'sunny'} size={18} color={Colors.orange} />
+              </View>
+              <Text style={[styles.menuLabel, { color: Colors.text }]}>
+                {isDark ? 'Mode sombre' : 'Mode clair'}
+              </Text>
+              <Switch
+                value={isDark}
+                onValueChange={toggleTheme}
+                thumbColor={isDark ? Colors.orange : Colors.textMuted}
+                trackColor={{ false: Colors.input, true: Colors.orangeBg }}
+              />
+            </View>
           </View>
         </View>
 
-        {/* Password form */}
-        {showPassForm && (
-          <View style={styles.passForm}>
-            {(['current', 'next', 'confirm'] as const).map((f, i) => (
-              <TextInput
-                key={f}
-                style={styles.passInput}
-                placeholder={['Mot de passe actuel', 'Nouveau mot de passe', 'Confirmer'][i]}
-                placeholderTextColor={Colors.textMuted}
-                value={passData[f]}
-                onChangeText={v => setPassData(p => ({ ...p, [f]: v }))}
-                secureTextEntry
-              />
-            ))}
+        {/* Compte */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionLabel, { color: Colors.textMuted }]}>MON COMPTE</Text>
+          <View style={[styles.menuGroup, { backgroundColor: Colors.card, borderColor: Colors.cardBorder }]}>
             <TouchableOpacity
-              style={[styles.btnPrimary, changingPass && { opacity: 0.6 }]}
-              onPress={handleChangePassword}
-              disabled={changingPass}
+              style={[styles.menuItem, { borderBottomColor: Colors.cardBorder }]}
+              onPress={() => setShowPassForm(!showPassForm)}
             >
-              {changingPass
-                ? <ActivityIndicator color={Colors.dark} />
-                : <Text style={styles.btnText}>Mettre à jour</Text>
-              }
+              <View style={[styles.menuIcon, { backgroundColor: Colors.orangeBg }]}>
+                <Ionicons name="key" size={18} color={Colors.orange} />
+              </View>
+              <Text style={[styles.menuLabel, { color: Colors.text }]}>Changer le mot de passe</Text>
+              <Ionicons name={showPassForm ? 'chevron-up' : 'chevron-down'} size={16} color={Colors.textMuted} />
+            </TouchableOpacity>
+
+            {showPassForm && (
+              <View style={[styles.passForm, { borderTopColor: Colors.cardBorder }]}>
+                {([
+                  { key: 'current', label: 'Mot de passe actuel' },
+                  { key: 'next', label: 'Nouveau mot de passe' },
+                  { key: 'confirm', label: 'Confirmer' },
+                ] as const).map(f => (
+                  <TextInput
+                    key={f.key}
+                    style={[styles.passInput, { backgroundColor: Colors.input, color: Colors.text, borderColor: Colors.inputBorder }]}
+                    placeholder={f.label}
+                    placeholderTextColor={Colors.textMuted}
+                    value={passData[f.key]}
+                    onChangeText={v => setPassData(p => ({ ...p, [f.key]: v }))}
+                    secureTextEntry
+                    autoCorrect={false}
+                  />
+                ))}
+                <TouchableOpacity
+                  style={[styles.passBtn, changingPass && { opacity: 0.6 }]}
+                  onPress={handleChangePassword}
+                  disabled={changingPass}
+                >
+                  {changingPass ? <ActivityIndicator color="#0D0D0D" size="small" /> : (
+                    <Text style={styles.passBtnText}>Mettre à jour</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            )}
+
+            <TouchableOpacity style={[styles.menuItem, { borderBottomColor: Colors.cardBorder }]}>
+              <View style={[styles.menuIcon, { backgroundColor: Colors.orangeBg }]}>
+                <Ionicons name="notifications" size={18} color={Colors.orange} />
+              </View>
+              <Text style={[styles.menuLabel, { color: Colors.text }]}>Notifications</Text>
+              {notifCount > 0 && (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{notifCount}</Text>
+                </View>
+              )}
+              <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
+            </TouchableOpacity>
+
+            <TouchableOpacity style={[styles.menuItem, { borderBottomColor: Colors.cardBorder }]}>
+              <View style={[styles.menuIcon, { backgroundColor: Colors.orangeBg }]}>
+                <Ionicons name="help-circle" size={18} color={Colors.orange} />
+              </View>
+              <Text style={[styles.menuLabel, { color: Colors.text }]}>Aide & Support</Text>
+              <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
+            </TouchableOpacity>
+
+            <TouchableOpacity style={[styles.menuItem, { borderBottomColor: 'transparent' }]} onPress={handleLogout}>
+              <View style={[styles.menuIcon, { backgroundColor: Colors.redBg }]}>
+                <Ionicons name="log-out" size={18} color={Colors.red} />
+              </View>
+              <Text style={[styles.menuLabel, { color: Colors.red }]}>Déconnexion</Text>
+              <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
             </TouchableOpacity>
           </View>
-        )}
-
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>APPLICATION</Text>
-          <View style={styles.menuGroup}>
-            <MenuItem icon="help-circle" label="Aide & Support" onPress={() => {}} />
-            <MenuItem icon="document-text" label="Conditions d'utilisation" onPress={() => {}} />
-            <MenuItem icon="log-out" label="Déconnexion" onPress={handleLogout} danger />
-          </View>
         </View>
 
-        <Text style={styles.version}>RidnGo v1.0.0 — Yowyob Inc. Ltd.</Text>
+        <Text style={[styles.version, { color: Colors.textMuted }]}>RidnGo v1.0.0 — Yowyob Inc. Ltd.</Text>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.dark },
+  safe: { flex: 1 },
   scroll: { padding: Spacing.lg, gap: Spacing.lg, paddingBottom: 100 },
   heroCard: {
-    backgroundColor: Colors.card, borderRadius: Radius.xl, padding: Spacing.xl,
-    alignItems: 'center', gap: 8, borderWidth: 1, borderColor: Colors.cardBorder,
+    borderRadius: Radius.xl, padding: Spacing.xl,
+    alignItems: 'center', gap: 8, borderWidth: 1,
   },
-  avatarLarge: {
-    width: 80, height: 80, borderRadius: 40, backgroundColor: Colors.orange,
+  avatar: {
+    width: 76, height: 76, borderRadius: 38, backgroundColor: '#FF8C00',
     alignItems: 'center', justifyContent: 'center',
-    shadowColor: Colors.orange, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.4, elevation: 8,
+    shadowColor: '#FF8C00', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.35, elevation: 8,
   },
-  avatarText: { color: Colors.white, fontWeight: '900', fontSize: 32 },
-  name: { color: Colors.white, fontWeight: '900', fontSize: 22, letterSpacing: -0.3 },
-  email: { color: Colors.textSecondary, fontSize: 13 },
-  phone: { color: Colors.textMuted, fontSize: 13 },
-  roleBadge: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    backgroundColor: Colors.orangeBg, paddingHorizontal: 12, paddingVertical: 6, borderRadius: Radius.full, marginTop: 4,
-  },
-  roleText: { color: Colors.orange, fontWeight: '900', fontSize: 11, letterSpacing: 1 },
+  avatarText: { color: 'white', fontWeight: '900', fontSize: 30 },
+  name: { fontWeight: '900', fontSize: 22, letterSpacing: -0.3 },
+  email: { fontSize: 13, fontWeight: '500' },
+  phone: { fontSize: 13, fontWeight: '500' },
+  roleBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: Radius.full },
+  roleText: { fontWeight: '900', fontSize: 10, letterSpacing: 1 },
   section: { gap: 8 },
-  sectionLabel: { color: Colors.textMuted, fontWeight: '900', fontSize: 10, letterSpacing: 3, paddingLeft: 4 },
-  menuGroup: {
-    backgroundColor: Colors.card, borderRadius: Radius.xl,
-    borderWidth: 1, borderColor: Colors.cardBorder, overflow: 'hidden',
-  },
-  menuItem: {
-    flexDirection: 'row', alignItems: 'center', gap: 14,
-    padding: Spacing.md, borderBottomWidth: 1, borderBottomColor: Colors.cardBorder,
-  },
-  menuIcon: {
-    width: 36, height: 36, borderRadius: 10, backgroundColor: Colors.orangeBg,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  menuIconDanger: { backgroundColor: Colors.redBg },
-  menuLabel: { flex: 1, color: Colors.white, fontWeight: '700', fontSize: 14 },
-  passForm: {
-    backgroundColor: Colors.card, borderRadius: Radius.xl, padding: Spacing.lg,
-    gap: Spacing.md, borderWidth: 1, borderColor: Colors.cardBorder,
-  },
-  passInput: {
-    backgroundColor: Colors.input, borderRadius: Radius.md, padding: 14,
-    color: Colors.white, fontWeight: '700', fontSize: 14,
-    borderWidth: 1, borderColor: Colors.inputBorder,
-  },
-  btnPrimary: {
-    backgroundColor: Colors.orange, borderRadius: Radius.lg, paddingVertical: 16,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  btnText: { color: Colors.dark, fontWeight: '900', fontSize: 14, textTransform: 'uppercase', letterSpacing: 1 },
-  version: { color: Colors.textMuted, fontSize: 11, textAlign: 'center', fontStyle: 'italic' },
+  sectionLabel: { fontWeight: '900', fontSize: 10, letterSpacing: 3, paddingLeft: 4 },
+  menuGroup: { borderRadius: Radius.xl, borderWidth: 1, overflow: 'hidden' },
+  menuItem: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: Spacing.md, borderBottomWidth: 1 },
+  menuIcon: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  menuLabel: { flex: 1, fontWeight: '700', fontSize: 14 },
+  badge: { backgroundColor: '#FF8C00', minWidth: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 5 },
+  badgeText: { color: 'white', fontWeight: '900', fontSize: 10 },
+  passForm: { padding: Spacing.md, gap: Spacing.sm, borderTopWidth: 1 },
+  passInput: { borderRadius: Radius.md, padding: 14, fontWeight: '700', fontSize: 14, borderWidth: 1 },
+  passBtn: { backgroundColor: '#FF8C00', borderRadius: Radius.md, paddingVertical: 14, alignItems: 'center' },
+  passBtnText: { color: '#0D0D0D', fontWeight: '900', fontSize: 13, textTransform: 'uppercase', letterSpacing: 1 },
+  version: { fontSize: 11, textAlign: 'center', fontStyle: 'italic' },
 });
 
 
@@ -1929,46 +2014,93 @@ FILE: app\(passenger)\ride.tsx
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, SafeAreaView,
-  ScrollView, ActivityIndicator, Alert, Animated, Modal,
-  TextInput, FlatList
+  ScrollView, ActivityIndicator, Alert, TextInput,
+  FlatList, KeyboardAvoidingView, Platform, Dimensions
 } from 'react-native';
+import { WebView } from 'react-native-webview';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
 import { useAuth } from '../../src/context/AuthContext';
-import { rideService } from '../../src/services/rideService';
+import { useTheme } from '../../src/context/ThemeContext';
+import { ThemeToggle } from '../../src/components/ThemeToggle';
 import { LocationSearch } from '../../src/components/LocationSearch';
-import { Colors, Spacing, Radius } from '../../src/types/theme';
+import { rideService } from '../../src/services/rideService';
+import { Spacing, Radius } from '../../src/types/theme';
 import { Location, OfferResponse, Bid } from '../../src/types/api';
 
-type Step = 'search' | 'price' | 'searching' | 'active' | 'review';
+type Step = 'search' | 'price' | 'waiting' | 'active' | 'review';
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+
+// OSM WebView map HTML
+const buildMapHTML = (
+  pickup?: Location | null,
+  dest?: Location | null,
+  partnerLat?: number,
+  partnerLon?: number
+) => {
+  const centerLat = pickup?.lat ?? 3.848;
+  const centerLon = pickup?.lon ?? 11.502;
+  const zoom = pickup ? 14 : 12;
+
+  const pickupMarker = pickup
+    ? `L.marker([${pickup.lat}, ${pickup.lon}], {icon: orangeIcon}).addTo(map).bindPopup("${pickup.name?.split(',')[0] || 'Départ'}");`
+    : '';
+  const destMarker = dest
+    ? `L.marker([${dest.lat}, ${dest.lon}], {icon: blueIcon}).addTo(map).bindPopup("${dest.name?.split(',')[0] || 'Destination'}");`
+    : '';
+  const partnerMarker = partnerLat && partnerLon
+    ? `L.marker([${partnerLat}, ${partnerLon}], {icon: carIcon}).addTo(map).bindPopup("Chauffeur");`
+    : '';
+  const fitBounds = pickup && dest
+    ? `map.fitBounds([[${pickup.lat}, ${pickup.lon}], [${dest.lat}, ${dest.lon}]], {padding: [40, 40]});`
+    : '';
+
+  return `<!DOCTYPE html><html><head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>html,body,#map{margin:0;padding:0;width:100%;height:100%;background:#1a1a1a;}</style>
+</head><body>
+<div id="map"></div>
+<script>
+var map = L.map('map', {zoomControl: false, attributionControl: false}).setView([${centerLat}, ${centerLon}], ${zoom});
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+var orangeIcon = L.divIcon({html:'<div style="width:16px;height:16px;border-radius:50%;background:#FF8C00;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.5)"></div>',iconSize:[16,16],className:''});
+var blueIcon = L.divIcon({html:'<div style="width:16px;height:16px;border-radius:50%;background:#3B82F6;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.5)"></div>',iconSize:[16,16],className:''});
+var carIcon = L.divIcon({html:'<div style="font-size:24px;line-height:1">🚗</div>',iconSize:[24,24],className:''});
+${pickupMarker}
+${destMarker}
+${partnerMarker}
+${fitBounds}
+</script></body></html>`;
+};
 
 export default function RideScreen() {
   const { user, logout } = useAuth();
+  const { Colors } = useTheme();
   const [step, setStep] = useState<Step>('search');
   const [pickup, setPickup] = useState<Location | null>(null);
   const [dest, setDest] = useState<Location | null>(null);
-  const [estimatedPrice, setEstimatedPrice] = useState(500);
   const [price, setPrice] = useState(500);
   const [loading, setLoading] = useState(false);
   const [currentOffer, setCurrentOffer] = useState<OfferResponse | null>(null);
   const [activeRideId, setActiveRideId] = useState<string | null>(null);
+  const [tracking, setTracking] = useState<{ latitude: number; longitude: number } | null>(null);
   const [stars, setStars] = useState(5);
   const [comment, setComment] = useState('');
-
+  const [mapKey, setMapKey] = useState(0);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Check for existing active ride on mount
   useEffect(() => {
     checkExistingRide();
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, []);
 
+  // Refresh map when locations change
+  useEffect(() => { setMapKey(k => k + 1); }, [pickup?.lat, pickup?.lon, dest?.lat, dest?.lon, tracking?.latitude]);
+
   const checkExistingRide = async () => {
     const ride = await rideService.getCurrentPassengerRide();
-    if (ride) {
-      setActiveRideId(ride.id);
-      setStep('active');
-    }
+    if (ride) { setActiveRideId(ride.id); setStep('active'); }
   };
 
   const handleEstimate = async () => {
@@ -1976,15 +2108,12 @@ export default function RideScreen() {
     setLoading(true);
     try {
       const fare = await rideService.estimateFare(pickup.name, dest.name);
-      const p = fare.estimatedPrice || fare.price || 500;
-      setEstimatedPrice(p);
-      setPrice(p);
+      const raw = (fare as any).prix_moyen ?? fare.estimatedPrice ?? fare.price ?? 500;
+      setPrice(Math.round(raw / 50) * 50);
       setStep('price');
     } catch {
-      Alert.alert('Erreur', "Impossible d'estimer le prix. Veuillez réessayer.");
-    } finally {
-      setLoading(false);
-    }
+      Alert.alert('Erreur', "Impossible d'estimer le prix.");
+    } finally { setLoading(false); }
   };
 
   const handlePublishOffer = async () => {
@@ -2002,13 +2131,10 @@ export default function RideScreen() {
         passengerPhone: user?.phone,
       });
       setCurrentOffer(offer);
-      setStep('searching');
+      setStep('waiting');
       startPolling(offer.id);
-    } catch {
-      Alert.alert('Erreur', "Impossible de publier l'offre.");
-    } finally {
-      setLoading(false);
-    }
+    } catch { Alert.alert('Erreur', "Impossible de publier l'offre."); }
+    finally { setLoading(false); }
   };
 
   const startPolling = (offerId: string) => {
@@ -2021,36 +2147,36 @@ export default function RideScreen() {
           const ride = await rideService.getRideByOffer(offerId);
           setActiveRideId(ride.id);
           setStep('active');
+          // start tracking polling
+          startTrackingPolling(ride.id);
         }
-      } catch (e) {
-        console.error('Polling error:', e);
-      }
+      } catch { /* silent */ }
+    }, 4000);
+  };
+
+  const startTrackingPolling = (rideId: string) => {
+    pollRef.current = setInterval(async () => {
+      try {
+        const t = await rideService.getTrackingInfo(rideId);
+        setTracking(t);
+      } catch { /* silent */ }
     }, 4000);
   };
 
   const handleSelectDriver = async (driverId: string) => {
     if (!currentOffer) return;
-    setLoading(true);
     try {
       await rideService.selectDriver(currentOffer.id, driverId);
-      Alert.alert('✅ Chauffeur sélectionné', 'En attente de confirmation du chauffeur...');
-    } catch {
-      Alert.alert('Erreur', 'Impossible de sélectionner ce chauffeur.');
-    } finally {
-      setLoading(false);
-    }
+    } catch { Alert.alert('Erreur', 'Impossible de sélectionner ce chauffeur.'); }
   };
 
-  const handleCancelOffer = async () => {
+  const handleCancelOffer = () => {
     Alert.alert('Annuler', 'Voulez-vous annuler la recherche ?', [
       { text: 'Non' },
-      {
-        text: 'Oui, annuler', style: 'destructive', onPress: () => {
-          if (pollRef.current) clearInterval(pollRef.current);
-          setCurrentOffer(null);
-          setStep('search');
-        }
-      }
+      { text: 'Oui', style: 'destructive', onPress: () => {
+        if (pollRef.current) clearInterval(pollRef.current);
+        setCurrentOffer(null); setStep('search');
+      }}
     ]);
   };
 
@@ -2059,74 +2185,86 @@ export default function RideScreen() {
     setLoading(true);
     try {
       await rideService.completeRide(activeRideId);
+      if (pollRef.current) clearInterval(pollRef.current);
       setStep('review');
-    } catch {
-      Alert.alert('Erreur', 'Impossible de terminer la course.');
-    } finally {
-      setLoading(false);
-    }
+    } catch { Alert.alert('Erreur', 'Impossible de terminer la course.'); }
+    finally { setLoading(false); }
   };
 
   const handleSubmitReview = async () => {
-    if (!activeRideId) return;
-    try {
-      await rideService.postReview(activeRideId, stars, comment);
-    } catch { /* ignore */ }
-    setStep('search');
-    setPickup(null);
-    setDest(null);
-    setCurrentOffer(null);
-    setActiveRideId(null);
+    if (activeRideId) {
+      try { await rideService.postReview(activeRideId, stars, comment); } catch { /* ignore */ }
+    }
+    setStep('search'); setPickup(null); setDest(null);
+    setCurrentOffer(null); setActiveRideId(null); setTracking(null);
   };
 
-  return (
-    <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+  const mapHTML = buildMapHTML(
+    pickup, dest,
+    tracking?.latitude, tracking?.longitude
+  );
 
+  return (
+    <SafeAreaView style={[styles.safe, { backgroundColor: Colors.background }]}>
+      {/* FULL SCREEN MAP */}
+      <View style={styles.mapContainer}>
+        <WebView
+          key={mapKey}
+          source={{ html: mapHTML }}
+          style={styles.map}
+          scrollEnabled={false}
+          javaScriptEnabled
+          domStorageEnabled
+        />
+      </View>
+
+      {/* OVERLAY PANEL - bottom sheet style */}
+      <View style={[styles.panel, { backgroundColor: Colors.card, borderColor: Colors.cardBorder }]}>
         {/* Header */}
-        <View style={styles.header}>
+        <View style={styles.panelHeader}>
           <View style={styles.logoRow}>
             <View style={styles.logoBox}><Text style={styles.logoLetter}>R</Text></View>
-            <Text style={styles.logoText}>RidnGo</Text>
-          </View>
-          <View style={styles.headerRight}>
-            <View style={styles.userBadge}>
-              <Ionicons name="person" size={14} color={Colors.orange} />
-              <Text style={styles.userName} numberOfLines={1}>{user?.name?.split(' ')[0]}</Text>
+            <View>
+              <Text style={[styles.logoText, { color: Colors.text }]}>RidnGo</Text>
+              <Text style={[styles.userTag, { color: Colors.orange }]}>{user?.name?.split(' ')[0]}</Text>
             </View>
-            <TouchableOpacity onPress={() => { logout(); router.replace('/'); }} style={styles.logoutBtn}>
-              <Ionicons name="log-out-outline" size={20} color={Colors.textMuted} />
-            </TouchableOpacity>
           </View>
+          <ThemeToggle />
         </View>
 
-        {/* ===== STEP: SEARCH ===== */}
+        {/* SEARCH STEP */}
         {step === 'search' && (
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Où allez-vous ?</Text>
-            <Text style={styles.cardSub}>Saisissez vos adresses pour obtenir une estimation</Text>
-            <View style={styles.inputsContainer}>
+          <ScrollView
+            style={{ overflow: 'visible' }}
+            contentContainerStyle={[styles.stepContent, { paddingBottom: 8 }]}
+            keyboardShouldPersistTaps="always"
+            scrollEnabled={false}
+          >
+            <Text style={[styles.stepTitle, { color: Colors.text }]}>Où allez-vous ?</Text>
+            <View style={[styles.inputsWrap, { overflow: 'visible' }]}>
               <View style={styles.inputLine}>
-                <View style={styles.dotOrange} />
-                <View style={{ flex: 1 }}>
+                <View style={[styles.dot, { backgroundColor: Colors.orange }]} />
+                <View style={{ flex: 1, zIndex: 10 }}>
                   <LocationSearch
-                    placeholder="Lieu de départ"
+                    placeholder="Point de départ"
                     value={pickup?.name || ''}
                     onSelect={setPickup}
                     icon="navigate"
                     showGPS
+                    Colors={Colors}
                   />
                 </View>
               </View>
-              <View style={styles.dashedLine} />
+              <View style={[styles.connector, { backgroundColor: Colors.cardBorder }]} />
               <View style={styles.inputLine}>
-                <View style={styles.dotWhite} />
-                <View style={{ flex: 1 }}>
+                <View style={[styles.dot, { backgroundColor: Colors.blue }]} />
+                <View style={{ flex: 1, zIndex: 9 }}>
                   <LocationSearch
-                    placeholder="Destination finale"
+                    placeholder="Destination"
                     value={dest?.name || ''}
                     onSelect={setDest}
                     icon="location"
+                    Colors={Colors}
                   />
                 </View>
               </View>
@@ -2135,349 +2273,230 @@ export default function RideScreen() {
               style={[styles.btnPrimary, (!pickup || !dest || loading) && styles.btnDisabled]}
               onPress={handleEstimate}
               disabled={!pickup || !dest || loading}
+              activeOpacity={0.8}
             >
-              {loading
-                ? <ActivityIndicator color={Colors.dark} />
-                : <><Text style={styles.btnText}>Voir les prix</Text><Ionicons name="arrow-forward" size={20} color={Colors.dark} /></>
-              }
+              {loading ? <ActivityIndicator color="#0D0D0D" /> : (
+                <><Text style={styles.btnText}>Estimer le prix</Text><Ionicons name="arrow-forward" size={18} color="#0D0D0D" /></>
+              )}
             </TouchableOpacity>
-          </View>
+          </ScrollView>
         )}
 
-        {/* ===== STEP: PRICE ===== */}
+        {/* PRICE STEP */}
         {step === 'price' && (
-          <View style={styles.card}>
+          <View style={styles.stepContent}>
             <TouchableOpacity style={styles.backRow} onPress={() => setStep('search')}>
-              <Ionicons name="arrow-back" size={18} color={Colors.textMuted} />
-              <Text style={styles.backText}>Modifier l'itinéraire</Text>
+              <Ionicons name="arrow-back" size={16} color={Colors.textMuted} />
+              <Text style={[styles.backText, { color: Colors.textMuted }]}>Modifier</Text>
             </TouchableOpacity>
-
-            {/* Trip summary */}
-            <View style={styles.tripSummary}>
+            <View style={styles.tripMini}>
               <View style={styles.tripRow}>
-                <View style={styles.dotOrange} />
-                <Text style={styles.tripText} numberOfLines={1}>{pickup?.name.split(',')[0]}</Text>
+                <View style={[styles.dot, { backgroundColor: Colors.orange }]} />
+                <Text style={[styles.tripText, { color: Colors.text }]} numberOfLines={1}>{pickup?.name.split(',')[0]}</Text>
               </View>
-              <View style={styles.tripArrow}><Ionicons name="arrow-down" size={14} color={Colors.textMuted} /></View>
+              <View style={[styles.tripLine, { backgroundColor: Colors.cardBorder }]} />
               <View style={styles.tripRow}>
-                <View style={styles.dotWhite} />
-                <Text style={styles.tripText} numberOfLines={1}>{dest?.name.split(',')[0]}</Text>
+                <View style={[styles.dot, { backgroundColor: Colors.blue }]} />
+                <Text style={[styles.tripText, { color: Colors.text }]} numberOfLines={1}>{dest?.name.split(',')[0]}</Text>
               </View>
             </View>
-
-            <Text style={styles.sectionTag}>ESTIMATION CONSEILLÉE</Text>
-            <Text style={styles.bigPrice}>{price} <Text style={styles.priceUnit}>F</Text></Text>
-            <Text style={styles.priceHint}>Vous pouvez ajuster ce montant</Text>
-
-            <View style={styles.priceControl}>
-              <TouchableOpacity
-                style={styles.priceBtnMinus}
-                onPress={() => setPrice(p => Math.max(100, p - 50))}
-              >
-                <Ionicons name="remove" size={24} color={Colors.white} />
+            <Text style={[styles.priceLabel, { color: Colors.textMuted }]}>PRIX ESTIMÉ</Text>
+            <Text style={[styles.bigPrice, { color: Colors.text }]}>{price}<Text style={[styles.priceSuffix, { color: Colors.textMuted }]}> F</Text></Text>
+            <View style={[styles.priceControl, { backgroundColor: Colors.input }]}>
+              <TouchableOpacity style={[styles.priceBtn, { backgroundColor: Colors.card }]} onPress={() => setPrice(p => Math.max(100, p - 50))}>
+                <Ionicons name="remove" size={22} color={Colors.text} />
               </TouchableOpacity>
-              <Text style={styles.priceDisplay}>{price} F</Text>
-              <TouchableOpacity
-                style={styles.priceBtnPlus}
-                onPress={() => setPrice(p => p + 50)}
-              >
-                <Ionicons name="add" size={24} color={Colors.dark} />
+              <Text style={[styles.priceVal, { color: Colors.text }]}>{price} FCFA</Text>
+              <TouchableOpacity style={[styles.priceBtn, { backgroundColor: Colors.orange }]} onPress={() => setPrice(p => p + 50)}>
+                <Ionicons name="add" size={22} color="#0D0D0D" />
               </TouchableOpacity>
             </View>
-
-            <TouchableOpacity
-              style={[styles.btnPrimary, loading && styles.btnDisabled]}
-              onPress={handlePublishOffer}
-              disabled={loading}
-            >
-              {loading
-                ? <ActivityIndicator color={Colors.dark} />
-                : <><Text style={styles.btnText}>Publier la demande</Text><Ionicons name="radio" size={20} color={Colors.dark} /></>
-              }
+            <TouchableOpacity style={[styles.btnPrimary, loading && styles.btnDisabled]} onPress={handlePublishOffer} disabled={loading}>
+              {loading ? <ActivityIndicator color="#0D0D0D" /> : (
+                <><Text style={styles.btnText}>Publier la demande</Text><Ionicons name="radio" size={18} color="#0D0D0D" /></>
+              )}
             </TouchableOpacity>
           </View>
         )}
 
-        {/* ===== STEP: SEARCHING ===== */}
-        {step === 'searching' && (
-          <View style={styles.card}>
-            <View style={styles.searchingHeader}>
-              <View style={styles.pulseDot} />
-              <View style={styles.pulseDot2} />
-              <Text style={styles.searchingLabel}>Recherche en cours...</Text>
-              <Text style={styles.priceTag}>{price} F</Text>
+        {/* WAITING STEP */}
+        {step === 'waiting' && (
+          <View style={styles.stepContent}>
+            <View style={styles.waitingHeader}>
+              <ActivityIndicator color={Colors.orange} />
+              <View>
+                <Text style={[styles.stepTitle, { color: Colors.text }]}>Recherche...</Text>
+                <Text style={[styles.stepSub, { color: Colors.textMuted }]}>{currentOffer?.proposals?.length || 0} chauffeur(s) disponible(s)</Text>
+              </View>
+              <Text style={[styles.waitPrice, { color: Colors.orange }]}>{price} F</Text>
             </View>
 
-            {/* Trip mini summary */}
-            {pickup && dest && (
-              <View style={styles.miniSummary}>
-                <Ionicons name="navigate" size={12} color={Colors.orange} />
-                <Text style={styles.miniText} numberOfLines={1}>{pickup.name.split(',')[0]}</Text>
-                <Ionicons name="arrow-forward" size={12} color={Colors.textMuted} />
-                <Text style={styles.miniText} numberOfLines={1}>{dest.name.split(',')[0]}</Text>
-              </View>
-            )}
-
-            {/* Drivers list */}
-            {!currentOffer?.proposals?.length ? (
-              <View style={styles.emptyRadar}>
-                <ActivityIndicator color={Colors.orange} size="large" />
-                <Text style={styles.emptyText}>Radar actif — en attente de chauffeurs</Text>
-              </View>
-            ) : (
+            {currentOffer?.proposals && currentOffer.proposals.length > 0 ? (
               <FlatList
                 data={currentOffer.proposals}
                 keyExtractor={item => item.id || item.driverId}
                 scrollEnabled={false}
+                keyboardShouldPersistTaps="always"
                 renderItem={({ item }: { item: Bid }) => (
                   <TouchableOpacity
-                    style={styles.driverCard}
+                    style={[styles.driverCard, { backgroundColor: Colors.input, borderColor: Colors.cardBorder }]}
                     onPress={() => handleSelectDriver(item.driverId)}
                   >
                     <View style={styles.driverAvatar}>
                       <Text style={styles.driverAvatarText}>{item.driverName?.[0] || '?'}</Text>
                     </View>
-                    <View style={styles.driverInfo}>
-                      <Text style={styles.driverName}>{item.driverName}</Text>
-                      <Text style={styles.driverMeta}>
-                        {item.brand || 'Véhicule'} • {item.eta ? `${item.eta} min` : '~5 min'} •{' '}
-                        <Ionicons name="star" size={11} color={Colors.orange} /> {item.rating?.toFixed(1) || '4.8'}
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.driverName, { color: Colors.text }]}>{item.driverName}</Text>
+                      <Text style={[styles.driverMeta, { color: Colors.textMuted }]}>
+                        {item.brand || 'Véhicule'} • <Ionicons name="star" size={11} color={Colors.orange} /> {item.rating?.toFixed(1) || '4.8'}
                       </Text>
                     </View>
-                    <View style={styles.selectBtn}>
-                      <Text style={styles.selectBtnText}>Go</Text>
+                    <View style={styles.goBtn}>
+                      <Text style={styles.goBtnText}>Go</Text>
                     </View>
                   </TouchableOpacity>
                 )}
               />
+            ) : (
+              <View style={styles.emptyWait}>
+                <Text style={[styles.emptyText, { color: Colors.textMuted }]}>Radar actif — les chauffeurs voient votre demande</Text>
+              </View>
             )}
 
             <TouchableOpacity style={styles.cancelBtn} onPress={handleCancelOffer}>
-              <Text style={styles.cancelText}>Annuler la recherche</Text>
+              <Text style={[styles.cancelText, { color: Colors.red }]}>Annuler la recherche</Text>
             </TouchableOpacity>
           </View>
         )}
 
-        {/* ===== STEP: ACTIVE RIDE ===== */}
+        {/* ACTIVE STEP */}
         {step === 'active' && (
-          <View style={styles.card}>
-            <View style={styles.activeHeader}>
-              <Ionicons name="checkmark-circle" size={28} color={Colors.green} />
+          <View style={styles.stepContent}>
+            <View style={[styles.activeBanner, { backgroundColor: Colors.greenBg }]}>
+              <Ionicons name="checkmark-circle" size={22} color={Colors.green} />
               <View>
-                <Text style={styles.activeTitle}>Course Acceptée !</Text>
-                <Text style={styles.activeSub}>Votre chauffeur est en route</Text>
+                <Text style={[styles.activeTitle, { color: Colors.green }]}>Course acceptée !</Text>
+                <Text style={[styles.activeSub, { color: Colors.textMuted }]}>Votre chauffeur est en route</Text>
               </View>
             </View>
-
-            <View style={styles.rideInfo}>
-              <View style={styles.rideInfoRow}>
-                <Text style={styles.rideInfoLabel}>STATUT</Text>
-                <View style={styles.statusBadge}>
-                  <View style={styles.statusDot} />
-                  <Text style={styles.statusText}>En cours</Text>
+            {pickup && dest && (
+              <View style={styles.tripMini}>
+                <View style={styles.tripRow}>
+                  <View style={[styles.dot, { backgroundColor: Colors.orange }]} />
+                  <Text style={[styles.tripText, { color: Colors.text }]} numberOfLines={1}>{pickup.name.split(',')[0]}</Text>
+                </View>
+                <View style={[styles.tripLine, { backgroundColor: Colors.cardBorder }]} />
+                <View style={styles.tripRow}>
+                  <View style={[styles.dot, { backgroundColor: Colors.blue }]} />
+                  <Text style={[styles.tripText, { color: Colors.text }]} numberOfLines={1}>{dest.name.split(',')[0]}</Text>
                 </View>
               </View>
-              {pickup && dest && (
-                <>
-                  <View style={styles.divider} />
-                  <View style={styles.tripMini}>
-                    <View style={styles.tripRow}>
-                      <View style={styles.dotOrange} />
-                      <Text style={styles.tripText} numberOfLines={1}>{pickup.name.split(',')[0]}</Text>
-                    </View>
-                    <View style={styles.tripArrow}><Ionicons name="arrow-down" size={14} color={Colors.textMuted} /></View>
-                    <View style={styles.tripRow}>
-                      <View style={styles.dotWhite} />
-                      <Text style={styles.tripText} numberOfLines={1}>{dest.name.split(',')[0]}</Text>
-                    </View>
-                  </View>
-                </>
-              )}
-            </View>
-
-            <TouchableOpacity
-              style={[styles.btnPrimary, loading && styles.btnDisabled]}
-              onPress={handleFinishRide}
-              disabled={loading}
-            >
-              {loading
-                ? <ActivityIndicator color={Colors.dark} />
-                : <Text style={styles.btnText}>Simuler "Arrivée"</Text>
-              }
+            )}
+            <TouchableOpacity style={[styles.btnPrimary, loading && styles.btnDisabled]} onPress={handleFinishRide} disabled={loading}>
+              {loading ? <ActivityIndicator color="#0D0D0D" /> : <Text style={styles.btnText}>Confirmer l'arrivée</Text>}
             </TouchableOpacity>
           </View>
         )}
 
-        {/* ===== STEP: REVIEW ===== */}
+        {/* REVIEW STEP */}
         {step === 'review' && (
-          <View style={styles.card}>
-            <View style={styles.reviewHeader}>
-              <View style={styles.reviewIcon}>
-                <Ionicons name="checkmark" size={40} color={Colors.white} />
+          <View style={styles.stepContent}>
+            <View style={styles.reviewHead}>
+              <View style={[styles.reviewIcon, { backgroundColor: Colors.green }]}>
+                <Ionicons name="checkmark" size={32} color="white" />
               </View>
-              <Text style={styles.reviewTitle}>Vous êtes arrivé !</Text>
-              <Text style={styles.reviewSub}>Notez votre chauffeur</Text>
+              <Text style={[styles.stepTitle, { color: Colors.text }]}>Vous êtes arrivé !</Text>
+              <Text style={[styles.stepSub, { color: Colors.textMuted }]}>Notez votre chauffeur</Text>
             </View>
-
             <View style={styles.starsRow}>
               {[1, 2, 3, 4, 5].map(s => (
                 <TouchableOpacity key={s} onPress={() => setStars(s)}>
-                  <Ionicons name={s <= stars ? 'star' : 'star-outline'} size={36} color={Colors.orange} />
+                  <Ionicons name={s <= stars ? 'star' : 'star-outline'} size={34} color={Colors.orange} />
                 </TouchableOpacity>
               ))}
             </View>
-
             <TextInput
-              style={styles.commentInput}
-              placeholder="Laissez un commentaire (optionnel)"
+              style={[styles.commentInput, { backgroundColor: Colors.input, color: Colors.text, borderColor: Colors.inputBorder }]}
+              placeholder="Commentaire (optionnel)"
               placeholderTextColor={Colors.textMuted}
               value={comment}
               onChangeText={setComment}
               multiline
-              numberOfLines={3}
+              numberOfLines={2}
             />
-
             <TouchableOpacity style={styles.btnPrimary} onPress={handleSubmitReview}>
               <Text style={styles.btnText}>Terminer</Text>
             </TouchableOpacity>
           </View>
         )}
-
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.dark },
-  scroll: { flexGrow: 1, padding: Spacing.lg, paddingBottom: 100 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.xl },
+  safe: { flex: 1 },
+  mapContainer: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
+  map: { flex: 1 },
+  panel: {
+    position: 'absolute', bottom: 0, left: 0, right: 0,
+    borderTopLeftRadius: 28, borderTopRightRadius: 28,
+    borderWidth: 1, borderBottomWidth: 0,
+    paddingTop: 12, paddingHorizontal: Spacing.lg, paddingBottom: 32,
+    shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.15, elevation: 20,
+  },
+  panelHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.md },
   logoRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  logoBox: { width: 36, height: 36, backgroundColor: Colors.orange, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  logoLetter: { color: Colors.white, fontWeight: '900', fontSize: 18, fontStyle: 'italic' },
-  logoText: { color: Colors.white, fontWeight: '900', fontSize: 20 },
-  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  userBadge: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    backgroundColor: Colors.orangeBg, paddingHorizontal: 12, paddingVertical: 6, borderRadius: Radius.full,
-    maxWidth: 120,
-  },
-  userName: { color: Colors.orange, fontWeight: '900', fontSize: 12 },
-  logoutBtn: { padding: 6 },
-
-  card: {
-    backgroundColor: Colors.card, borderRadius: Radius.xl,
-    padding: Spacing.lg, borderWidth: 1, borderColor: Colors.cardBorder,
-    gap: Spacing.md,
-  },
-  cardTitle: { color: Colors.white, fontWeight: '900', fontSize: 26, letterSpacing: -0.5 },
-  cardSub: { color: Colors.textSecondary, fontSize: 13 },
-
-  inputsContainer: { gap: 4 },
+  logoBox: { width: 34, height: 34, backgroundColor: '#FF8C00', borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  logoLetter: { color: 'white', fontWeight: '900', fontSize: 16, fontStyle: 'italic' },
+  logoText: { fontWeight: '900', fontSize: 16, letterSpacing: -0.3 },
+  userTag: { fontWeight: '900', fontSize: 9, letterSpacing: 2 },
+  stepContent: { gap: Spacing.md, overflow: 'visible' },
+  stepTitle: { fontWeight: '900', fontSize: 22, letterSpacing: -0.5 },
+  stepSub: { fontWeight: '600', fontSize: 12 },
+  inputsWrap: { gap: 4, overflow: 'visible' },
   inputLine: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  dotOrange: { width: 10, height: 10, borderRadius: 5, backgroundColor: Colors.orange },
-  dotWhite: { width: 10, height: 10, borderRadius: 5, backgroundColor: Colors.white },
-  dashedLine: { width: 2, height: 16, backgroundColor: Colors.cardBorder, marginLeft: 4 },
-
+  dot: { width: 10, height: 10, borderRadius: 5 },
+  connector: { width: 2, height: 14, marginLeft: 4 },
   btnPrimary: {
-    backgroundColor: Colors.orange, borderRadius: Radius.lg, paddingVertical: 18,
+    backgroundColor: '#FF8C00', borderRadius: Radius.lg, paddingVertical: 16,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-    shadowColor: Colors.orange, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.35, shadowRadius: 12, elevation: 6,
+    shadowColor: '#FF8C00', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, elevation: 6,
   },
-  btnDisabled: { opacity: 0.5 },
-  btnText: { color: Colors.dark, fontWeight: '900', fontSize: 14, textTransform: 'uppercase', letterSpacing: 1 },
-
+  btnDisabled: { opacity: 0.4 },
+  btnText: { color: '#0D0D0D', fontWeight: '900', fontSize: 14, textTransform: 'uppercase', letterSpacing: 1 },
   backRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  backText: { color: Colors.textMuted, fontWeight: '700', fontSize: 12 },
-
-  tripSummary: { backgroundColor: Colors.input, borderRadius: Radius.md, padding: Spacing.md, gap: 4 },
-  tripRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  tripArrow: { paddingLeft: 5 },
-  tripText: { flex: 1, color: Colors.white, fontWeight: '600', fontSize: 13 },
-
-  sectionTag: { color: Colors.orange, fontWeight: '900', fontSize: 10, letterSpacing: 3, textTransform: 'uppercase' },
-  bigPrice: { color: Colors.white, fontWeight: '900', fontSize: 56, letterSpacing: -2, textAlign: 'center' },
-  priceUnit: { fontSize: 22, color: Colors.textMuted },
-  priceHint: { color: Colors.textMuted, fontSize: 11, textAlign: 'center', fontWeight: '700' },
-
-  priceControl: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: Colors.input, borderRadius: Radius.xl, padding: 8,
-  },
-  priceBtnMinus: {
-    width: 56, height: 56, backgroundColor: Colors.darkCard,
-    borderRadius: Radius.md, alignItems: 'center', justifyContent: 'center',
-  },
-  priceBtnPlus: {
-    width: 56, height: 56, backgroundColor: Colors.orange,
-    borderRadius: Radius.md, alignItems: 'center', justifyContent: 'center',
-  },
-  priceDisplay: { color: Colors.white, fontWeight: '900', fontSize: 20 },
-
-  searchingHeader: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: Colors.cardBorder },
-  pulseDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: Colors.orange },
-  pulseDot2: { position: 'absolute', width: 10, height: 10, borderRadius: 5, backgroundColor: Colors.orange, opacity: 0.4 },
-  searchingLabel: { flex: 1, color: Colors.white, fontWeight: '900', fontSize: 13, textTransform: 'uppercase', letterSpacing: 1 },
-  priceTag: { color: Colors.orange, fontWeight: '900', fontSize: 16 },
-
-  miniSummary: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    backgroundColor: Colors.input, padding: 10, borderRadius: Radius.md,
-  },
-  miniText: { flex: 1, color: Colors.textSecondary, fontSize: 12, fontWeight: '600' },
-
-  emptyRadar: { alignItems: 'center', gap: 12, paddingVertical: Spacing.xl },
-  emptyText: { color: Colors.textMuted, fontWeight: '700', fontSize: 12, textTransform: 'uppercase', letterSpacing: 1 },
-
-  driverCard: {
-    flexDirection: 'row', alignItems: 'center', gap: 12,
-    backgroundColor: Colors.input, borderRadius: Radius.md, padding: Spacing.md,
-    marginBottom: 8,
-  },
-  driverAvatar: {
-    width: 44, height: 44, borderRadius: 14, backgroundColor: Colors.orange,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  driverAvatarText: { color: Colors.dark, fontWeight: '900', fontSize: 18 },
-  driverInfo: { flex: 1 },
-  driverName: { color: Colors.white, fontWeight: '900', fontSize: 14 },
-  driverMeta: { color: Colors.textMuted, fontWeight: '600', fontSize: 12 },
-  selectBtn: {
-    backgroundColor: Colors.orange, paddingHorizontal: 16, paddingVertical: 8,
-    borderRadius: Radius.md,
-  },
-  selectBtnText: { color: Colors.dark, fontWeight: '900', fontSize: 13 },
-
-  cancelBtn: { alignItems: 'center', paddingVertical: 8 },
-  cancelText: { color: Colors.red, fontWeight: '900', fontSize: 13, textTransform: 'uppercase', letterSpacing: 1 },
-
-  activeHeader: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: Colors.greenBg, borderRadius: Radius.md, padding: Spacing.md },
-  activeTitle: { color: Colors.green, fontWeight: '900', fontSize: 16 },
-  activeSub: { color: Colors.textMuted, fontSize: 13 },
-
-  rideInfo: { backgroundColor: Colors.input, borderRadius: Radius.md, padding: Spacing.md },
-  rideInfoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  rideInfoLabel: { color: Colors.textMuted, fontWeight: '900', fontSize: 10, letterSpacing: 2 },
-  statusBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: Colors.greenBg, paddingHorizontal: 10, paddingVertical: 5, borderRadius: Radius.full },
-  statusDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: Colors.green },
-  statusText: { color: Colors.green, fontWeight: '900', fontSize: 11 },
-  divider: { height: 1, backgroundColor: Colors.cardBorder, marginVertical: 10 },
+  backText: { fontWeight: '700', fontSize: 12 },
   tripMini: { gap: 4 },
-
-  reviewHeader: { alignItems: 'center', gap: 12 },
-  reviewIcon: {
-    width: 80, height: 80, borderRadius: 40, backgroundColor: Colors.green,
-    alignItems: 'center', justifyContent: 'center',
-    shadowColor: Colors.green, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.5, elevation: 8,
-  },
-  reviewTitle: { color: Colors.white, fontWeight: '900', fontSize: 28, letterSpacing: -0.5 },
-  reviewSub: { color: Colors.textSecondary, fontSize: 14 },
+  tripRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  tripLine: { width: 2, height: 12, marginLeft: 4 },
+  tripText: { flex: 1, fontWeight: '600', fontSize: 13 },
+  priceLabel: { fontWeight: '900', fontSize: 9, letterSpacing: 3, textTransform: 'uppercase' },
+  bigPrice: { fontWeight: '900', fontSize: 48, letterSpacing: -2, textAlign: 'center' },
+  priceSuffix: { fontSize: 18 },
+  priceControl: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderRadius: Radius.xl, padding: 8 },
+  priceBtn: { width: 48, height: 48, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  priceVal: { fontWeight: '900', fontSize: 16 },
+  waitingHeader: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  waitPrice: { fontWeight: '900', fontSize: 16, marginLeft: 'auto' },
+  driverCard: { flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: Radius.md, padding: 12, borderWidth: 1, marginBottom: 6 },
+  driverAvatar: { width: 40, height: 40, borderRadius: 12, backgroundColor: '#FF8C00', alignItems: 'center', justifyContent: 'center' },
+  driverAvatarText: { color: 'white', fontWeight: '900', fontSize: 16 },
+  driverName: { fontWeight: '900', fontSize: 13 },
+  driverMeta: { fontWeight: '600', fontSize: 11 },
+  goBtn: { backgroundColor: '#FF8C00', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10 },
+  goBtnText: { color: '#0D0D0D', fontWeight: '900', fontSize: 13 },
+  emptyWait: { alignItems: 'center', paddingVertical: 16 },
+  emptyText: { fontWeight: '700', fontSize: 12, textAlign: 'center' },
+  cancelBtn: { alignItems: 'center', paddingVertical: 8 },
+  cancelText: { fontWeight: '900', fontSize: 12, textTransform: 'uppercase', letterSpacing: 1 },
+  activeBanner: { flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: Radius.md, padding: 12 },
+  activeTitle: { fontWeight: '900', fontSize: 14 },
+  activeSub: { fontWeight: '600', fontSize: 12 },
+  reviewHead: { alignItems: 'center', gap: 8 },
+  reviewIcon: { width: 70, height: 70, borderRadius: 35, alignItems: 'center', justifyContent: 'center' },
   starsRow: { flexDirection: 'row', justifyContent: 'center', gap: 8 },
-  commentInput: {
-    backgroundColor: Colors.input, borderRadius: Radius.md, padding: Spacing.md,
-    color: Colors.white, fontWeight: '600', fontSize: 14, minHeight: 80, textAlignVertical: 'top',
-    borderWidth: 1, borderColor: Colors.inputBorder,
-  },
+  commentInput: { borderRadius: Radius.md, padding: 12, fontWeight: '600', fontSize: 13, minHeight: 60, textAlignVertical: 'top', borderWidth: 1 },
 });
 
 
@@ -2611,16 +2630,29 @@ export default function RootLayout() {
 ========================================
 FILE: src\components\LocationSearch.tsx
 ========================================
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, FlatList,
   StyleSheet, ActivityIndicator
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { geocodeService } from '../services/userService';
 import { Colors, Spacing, Radius } from '../types/theme';
 import { Location } from '../types/api';
 import * as ExpoLocation from 'expo-location';
+
+const OSM_URL = 'https://nominatim.openstreetmap.org';
+
+const formatAddress = (addressObj: any): string => {
+  if (!addressObj) return '';
+  const road = addressObj.road || addressObj.pedestrian || addressObj.highway;
+  const neighborhood = addressObj.suburb || addressObj.neighbourhood || addressObj.city_district;
+  const city = addressObj.city || addressObj.town || addressObj.village;
+  const parts: string[] = [];
+  if (road) parts.push(road);
+  if (neighborhood) parts.push(neighborhood);
+  if (city && city !== neighborhood) parts.push(city);
+  return parts.length > 0 ? parts.join(', ') : 'Ma position';
+};
 
 interface Props {
   placeholder: string;
@@ -2628,71 +2660,105 @@ interface Props {
   onSelect: (loc: Location) => void;
   icon?: string;
   showGPS?: boolean;
+  Colors: typeof Colors;
 }
 
-export function LocationSearch({ placeholder, value, onSelect, icon = 'navigate', showGPS = false }: Props) {
+export function LocationSearch({ placeholder, value, onSelect, icon = 'navigate', showGPS = false, Colors }: Props) {
   const [query, setQuery] = useState(value);
-  const [results, setResults] = useState<Location[]>([]);
+  const [suggestions, setSuggestions] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [locating, setLocating] = useState(false);
   const [focused, setFocused] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const search = useCallback(async (q: string) => {
+  const search = useCallback((q: string) => {
     setQuery(q);
-    if (q.length < 3) { setResults([]); return; }
-    setLoading(true);
-    const data = await geocodeService.search(q);
-    setResults(data);
-    setLoading(false);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (!q || q.length < 3) { setSuggestions([]); return; }
+    debounceRef.current = setTimeout(async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(
+          `${OSM_URL}/search?format=json&q=${encodeURIComponent(q)}&countrycodes=cm&limit=5&addressdetails=1&accept-language=fr`
+        );
+        const data = await res.json();
+        setSuggestions(data);
+      } catch { setSuggestions([]); }
+      finally { setLoading(false); }
+    }, 600);
   }, []);
 
-  const handleSelect = (loc: Location) => {
-    setQuery(loc.name.split(',')[0]);
-    setResults([]);
+  const handleSelect = (item: any) => {
+    const name = formatAddress(item.address) || item.display_name.split(',')[0];
+    setQuery(name);
+    setSuggestions([]);
     setFocused(false);
-    onSelect(loc);
+    onSelect({ name, lat: parseFloat(item.lat), lon: parseFloat(item.lon) });
   };
 
   const useGPS = async () => {
     const { status } = await ExpoLocation.requestForegroundPermissionsAsync();
     if (status !== 'granted') return;
-    setLoading(true);
-    const pos = await ExpoLocation.getCurrentPositionAsync({ accuracy: ExpoLocation.Accuracy.Balanced });
-    const name = await geocodeService.reverseGeocode(pos.coords.latitude, pos.coords.longitude);
-    setLoading(false);
-    handleSelect({ name, lat: pos.coords.latitude, lon: pos.coords.longitude });
+    setLocating(true);
+    try {
+      const pos = await ExpoLocation.getCurrentPositionAsync({ accuracy: ExpoLocation.Accuracy.High });
+      const res = await fetch(
+        `${OSM_URL}/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&zoom=18&addressdetails=1&accept-language=fr`
+      );
+      const data = await res.json();
+      const name = formatAddress(data.address) || 'Ma position';
+      setQuery(name);
+      setSuggestions([]);
+      onSelect({ name, lat: pos.coords.latitude, lon: pos.coords.longitude });
+    } catch { /* ignore */ }
+    finally { setLocating(false); }
   };
 
   return (
-    <View>
-      <View style={[styles.row, focused && styles.rowFocused]}>
+    <View style={{ overflow: 'visible' }}>
+      <View style={[styles.row, { backgroundColor: Colors.input, borderColor: focused ? Colors.orange : Colors.inputBorder }]}>
         <Ionicons name={icon as any} size={18} color={focused ? Colors.orange : Colors.textMuted} style={styles.icon} />
         <TextInput
-          style={styles.input}
+          style={[styles.input, { color: Colors.text }]}
           placeholder={placeholder}
           placeholderTextColor={Colors.textMuted}
           value={query}
           onChangeText={search}
           onFocus={() => setFocused(true)}
-          onBlur={() => setTimeout(() => setFocused(false), 200)}
+          onBlur={() => setTimeout(() => { setFocused(false); setSuggestions([]); }, 250)}
+          autoCorrect={false}
+          autoCapitalize="none"
+          blurOnSubmit={false}
         />
-        {loading && <ActivityIndicator size="small" color={Colors.orange} style={{ marginRight: 8 }} />}
-        {showGPS && !loading && (
+        {(loading || locating) && <ActivityIndicator size="small" color={Colors.orange} style={styles.loader} />}
+        {showGPS && !loading && !locating && (
           <TouchableOpacity onPress={useGPS} style={styles.gpsBtn}>
             <Ionicons name="locate" size={18} color={Colors.orange} />
           </TouchableOpacity>
         )}
       </View>
 
-      {focused && results.length > 0 && (
-        <View style={styles.dropdown}>
+      {focused && suggestions.length > 0 && (
+        <View style={[styles.dropdown, { backgroundColor: Colors.card, borderColor: Colors.cardBorder }]}>
           <FlatList
-            data={results}
+            data={suggestions}
             keyExtractor={(_, i) => String(i)}
             scrollEnabled={false}
+            keyboardShouldPersistTaps="always"
             renderItem={({ item }) => (
-              <TouchableOpacity style={styles.resultItem} onPress={() => handleSelect(item)}>
-                <Ionicons name="location" size={14} color={Colors.orange} />
-                <Text style={styles.resultText} numberOfLines={2}>{item.name}</Text>
+              <TouchableOpacity
+                style={[styles.resultItem, { borderBottomColor: Colors.darkBorder }]}
+                onPress={() => handleSelect(item)}
+              >
+                <Ionicons name="location" size={14} color={Colors.orange} style={{ marginTop: 2 }} />
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.resultName, { color: Colors.text }]} numberOfLines={1}>
+                    {item.display_name.split(',')[0]}
+                  </Text>
+                  <Text style={[styles.resultSub, { color: Colors.textMuted }]} numberOfLines={1}>
+                    {item.display_name.split(',').slice(1, 3).join(',')}
+                  </Text>
+                </View>
               </TouchableOpacity>
             )}
           />
@@ -2705,24 +2771,26 @@ export function LocationSearch({ placeholder, value, onSelect, icon = 'navigate'
 const styles = StyleSheet.create({
   row: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: Colors.input, borderRadius: Radius.md,
-    borderWidth: 1, borderColor: Colors.inputBorder, paddingHorizontal: Spacing.md,
+    borderRadius: Radius.md, borderWidth: 1,
+    paddingHorizontal: Spacing.md,
   },
-  rowFocused: { borderColor: Colors.orange },
   icon: { marginRight: 8 },
-  input: { flex: 1, color: Colors.white, fontWeight: '700', fontSize: 14, paddingVertical: 14 },
+  input: { flex: 1, fontWeight: '700', fontSize: 14, paddingVertical: 14 },
+  loader: { marginRight: 8 },
   gpsBtn: { padding: 6 },
   dropdown: {
-    backgroundColor: '#1E1E1E', borderRadius: Radius.md, marginTop: 4,
-    borderWidth: 1, borderColor: Colors.inputBorder,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.5, elevation: 8,
+    position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 9999,
+    borderRadius: Radius.md, marginTop: 4,
+    borderWidth: 1,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, elevation: 50,
   },
   resultItem: {
     flexDirection: 'row', alignItems: 'flex-start', gap: 8,
     paddingHorizontal: Spacing.md, paddingVertical: 12,
-    borderBottomWidth: 1, borderBottomColor: Colors.darkBorder,
+    borderBottomWidth: 1,
   },
-  resultText: { flex: 1, color: Colors.white, fontWeight: '600', fontSize: 13, lineHeight: 18 },
+  resultName: { fontWeight: '700', fontSize: 13 },
+  resultSub: { fontWeight: '600', fontSize: 11, marginTop: 2 },
 });
 
 
@@ -2968,6 +3036,7 @@ FILE: src\services\auth.ts
 ========================================
 import * as SecureStore from 'expo-secure-store';
 import api from './api';
+import { BASE_URL } from './api';
 import { AuthResponse, UserObj, UserRole } from '../types/api';
 
 export const authService = {
@@ -2976,26 +3045,22 @@ export const authService = {
       const response = await api.post<AuthResponse>('/api/v1/auth/login', { identifier, password });
       return await finalizeSession(response.data);
     } catch (error: any) {
-      const msg = error.response?.data?.message
-        || error.response?.data?.error
-        || error.message
-        || "Identifiants invalides";
+      const msg = error.response?.data?.message || error.response?.data?.error || error.message || "Identifiants invalides";
       return { success: false, message: msg };
     }
   },
 
   register: async (data: {
-    username: string;
-    password: string;
-    email: string;
-    phone: string;
-    firstName: string;
-    lastName: string;
-    role: UserRole;
-    photo?: any;
+    username: string; password: string; email: string; phone: string;
+    firstName: string; lastName: string; role: UserRole; photo?: any;
   }): Promise<{ success: boolean; role?: string; message?: string }> => {
     try {
-      const registerDto = {
+      const token = await SecureStore.getItemAsync('accessToken');
+
+      // Build multipart manually using fetch (Axios breaks multipart on React Native)
+      const boundary = '----RidnGoBoundary' + Date.now();
+
+      const registerDto = JSON.stringify({
         username: data.username,
         password: data.password,
         email: data.email,
@@ -3003,33 +3068,44 @@ export const authService = {
         firstName: data.firstName,
         lastName: data.lastName,
         roles: [data.role],
-      };
-
-      // Backend always requires multipart/form-data with a "data" JSON part
-      const formData = new FormData();
-      const blob = new Blob([JSON.stringify(registerDto)], { type: 'application/json' });
-      formData.append('data', blob as any);
-
-      if (data.photo) {
-        formData.append('file', {
-          uri: data.photo.uri,
-          name: data.photo.fileName || 'photo.jpg',
-          type: data.photo.mimeType || 'image/jpeg',
-        } as any);
-      }
-
-      const response = await api.post<AuthResponse>('/api/v1/auth/register', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      return await finalizeSession(response.data);
+      let body = '';
+      body += `--${boundary}\r\n`;
+      body += `Content-Disposition: form-data; name="data"\r\n`;
+      body += `Content-Type: application/json\r\n\r\n`;
+      body += `${registerDto}\r\n`;
+
+      if (data.photo) {
+        // For photo we still use FormData separately
+        body += `--${boundary}\r\n`;
+        body += `Content-Disposition: form-data; name="file"; filename="${data.photo.fileName || 'photo.jpg'}"\r\n`;
+        body += `Content-Type: ${data.photo.mimeType || 'image/jpeg'}\r\n\r\n`;
+      }
+
+      body += `--${boundary}--\r\n`;
+
+      const headers: any = {
+        'Content-Type': `multipart/form-data; boundary=${boundary}`,
+      };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch(`${BASE_URL}/api/v1/auth/register`, {
+        method: 'POST',
+        headers,
+        body,
+      });
+
+      const responseData = await res.json();
+
+      if (!res.ok) {
+        const msg = responseData?.message || responseData?.error || `Erreur ${res.status}`;
+        return { success: false, message: msg };
+      }
+
+      return await finalizeSession(responseData as AuthResponse);
     } catch (error: any) {
-      const msg = error.response?.data?.message
-        || error.response?.data?.error
-        || (typeof error.response?.data === 'string' ? error.response.data : null)
-        || error.message
-        || "Erreur lors de l'inscription";
-      return { success: false, message: typeof msg === 'string' ? msg : JSON.stringify(msg) };
+      return { success: false, message: error.message || "Erreur lors de l'inscription" };
     }
   },
 
@@ -3043,9 +3119,7 @@ export const authService = {
     try {
       const raw = await SecureStore.getItemAsync('user');
       return raw ? JSON.parse(raw) : null;
-    } catch {
-      return null;
-    }
+    } catch { return null; }
   },
 
   isAuthenticated: async (): Promise<boolean> => {
@@ -3072,9 +3146,7 @@ const finalizeSession = async (authData: AuthResponse): Promise<{ success: boole
 
   const userObj: UserObj = {
     id: userProfile.id || authData.username,
-    name: userProfile.name
-      || `${userProfile.firstName || ''} ${userProfile.lastName || ''}`.trim()
-      || authData.username,
+    name: userProfile.name || `${userProfile.firstName || ''} ${userProfile.lastName || ''}`.trim() || authData.username,
     email: userProfile.email || '',
     phone: userProfile.telephone,
     role: isDriver ? 'DRIVER' : isAdmin ? 'ADMIN' : 'PASSENGER',
@@ -3096,14 +3168,7 @@ import {
 
 export const rideService = {
   estimateFare: async (pickup: string, destination: string): Promise<FareResponse> => {
-    const body = {
-      depart: pickup,
-      arrivee: destination,
-      heure: 'matin',
-      meteo: 0,
-      type_zone: 0,
-      congestion_user: 1,
-    };
+    const body = { depart: pickup, arrivee: destination, heure: 'matin', meteo: 0, type_zone: 0, congestion_user: 1 };
     const response = await api.post<FareResponse>('/api/v1/fares/estimate', body);
     return response.data;
   },
@@ -3148,6 +3213,11 @@ export const rideService = {
     return response.data;
   },
 
+  completeRide: async (rideId: string): Promise<RideResponse> => {
+    const response = await api.patch<RideResponse>(`/api/v1/trips/${rideId}/status`, { status: 'COMPLETED' });
+    return response.data;
+  },
+
   postReview: async (rideId: string, stars: number, comment: string) => {
     const response = await api.post(`/api/v1/reviews/ride/${rideId}`, { stars, comment });
     return response.data;
@@ -3184,9 +3254,7 @@ export const rideService = {
     try {
       const res = await api.get<RideResponse>('/api/v1/trips/driver/current');
       return res.data;
-    } catch {
-      return null;
-    }
+    } catch { return null; }
   },
 
   getCurrentPassengerRide: async (): Promise<RideResponse | null> => {
@@ -3195,18 +3263,14 @@ export const rideService = {
       const latest = response.data[0];
       if (latest && (latest.state === 'CREATED' || latest.state === 'ONGOING')) return latest;
       return null;
-    } catch {
-      return null;
-    }
+    } catch { return null; }
   },
 
   updateLocation: async (lat: number, lon: number): Promise<boolean> => {
     try {
       await api.post('/api/v1/location', { latitude: lat, longitude: lon });
       return true;
-    } catch {
-      return false;
-    }
+    } catch { return false; }
   },
 
   getMyTrajectories: async (): Promise<DriverTrajectory[]> => {
@@ -3324,17 +3388,6 @@ export interface UserObj {
   role: SimpleRole;
 }
 
-export interface UserResponse {
-  id: string;
-  name?: string;
-  firstName?: string;
-  lastName?: string;
-  email: string;
-  telephone?: string;
-  roles: UserRole[];
-  profilePhotoUrl?: string;
-}
-
 export interface VehicleInfo {
   vehicleMakeName?: string;
   vehicleModelName?: string;
@@ -3352,12 +3405,10 @@ export interface VehicleInfo {
   mileageSinceCommissioning?: number;
   vehicleAgeAtStart?: number;
   averageFuelConsumptionPerKm?: number;
-  // attributes
   makeName?: string;
   modelName?: string;
   typeName?: string;
   sizeName?: string;
-  fuelTypeName_?: string;
   transmissionType?: string;
   airConditioned?: boolean;
   comfortable?: boolean;
@@ -3418,15 +3469,17 @@ export interface RideResponse {
   rideId?: string;
   createdAt?: string;
   distance?: number;
-  vehicle?: {
-    brand?: string;
-    modelName?: string;
-  };
+  startLat?: number;
+  startLon?: number;
+  endLat?: number;
+  endLon?: number;
+  vehicle?: { brand?: string; modelName?: string; };
   partnerPhoto?: string;
 }
 
 export interface FareResponse {
   estimatedPrice?: number;
+  prix_moyen?: number;
   price?: number;
   distance?: number;
   duration?: number;
@@ -3710,7 +3763,8 @@ FILE: package-lock.json
         "react-native-gesture-handler": "~2.20.2",
         "react-native-reanimated": "~3.16.7",
         "react-native-safe-area-context": "4.12.0",
-        "react-native-screens": "~4.4.0"
+        "react-native-screens": "~4.4.0",
+        "react-native-webview": "13.12.5"
       },
       "devDependencies": {
         "@babel/core": "^7.25.0",
@@ -10577,9 +10631,6 @@ FILE: package-lock.json
       "cpu": [
         "arm64"
       ],
-      "libc": [
-        "glibc"
-      ],
       "license": "MPL-2.0",
       "optional": true,
       "os": [
@@ -10599,9 +10650,6 @@ FILE: package-lock.json
       "integrity": "sha512-rCGBm2ax7kQ9pBSeITfCW9XSVF69VX+fm5DIpvDZQl4NnQoMQyRwhZQm9pd59m8leZ1IesRqWk2v/DntMo26lg==",
       "cpu": [
         "arm64"
-      ],
-      "libc": [
-        "musl"
       ],
       "license": "MPL-2.0",
       "optional": true,
@@ -10623,9 +10671,6 @@ FILE: package-lock.json
       "cpu": [
         "x64"
       ],
-      "libc": [
-        "glibc"
-      ],
       "license": "MPL-2.0",
       "optional": true,
       "os": [
@@ -10645,9 +10690,6 @@ FILE: package-lock.json
       "integrity": "sha512-QKjTxXm8A9s6v9Tg3Fk0gscCQA1t/HMoF7Woy1u68wCk5kS4fR+q3vXa1p3++REW784cRAtkYKrPy6JKibrEZA==",
       "cpu": [
         "x64"
-      ],
-      "libc": [
-        "musl"
       ],
       "license": "MPL-2.0",
       "optional": true,
@@ -12612,6 +12654,20 @@ FILE: package-lock.json
       "dependencies": {
         "react-freeze": "^1.0.0",
         "warn-once": "^0.1.0"
+      },
+      "peerDependencies": {
+        "react": "*",
+        "react-native": "*"
+      }
+    },
+    "node_modules/react-native-webview": {
+      "version": "13.12.5",
+      "resolved": "https://registry.npmjs.org/react-native-webview/-/react-native-webview-13.12.5.tgz",
+      "integrity": "sha512-INOKPom4dFyzkbxbkuQNfeRG9/iYnyRDzrDkJeyvSWgJAW2IDdJkWFJBS2v0RxIL4gqLgHkiIZDOfiLaNnw83Q==",
+      "license": "MIT",
+      "dependencies": {
+        "escape-string-regexp": "^4.0.0",
+        "invariant": "2.2.4"
       },
       "peerDependencies": {
         "react": "*",
@@ -14608,7 +14664,8 @@ FILE: package.json
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
-    "ios": "expo start --ios"
+    "ios": "expo start --ios",
+    "build:apk": "eas build --platform android --profile apk"
   },
   "dependencies": {
     "expo": "~52.0.36",
@@ -14628,6 +14685,7 @@ FILE: package.json
     "react-native-screens": "~4.4.0",
     "react-native-gesture-handler": "~2.20.2",
     "react-native-reanimated": "~3.16.7",
+    "react-native-webview": "13.12.5",
     "axios": "^1.7.9",
     "@expo/vector-icons": "~14.0.4"
   },
