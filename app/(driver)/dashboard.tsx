@@ -154,6 +154,20 @@ export default function DriverDashboard() {
     }
   };
 
+
+  ////////
+  const formatTime = (timeStr?: string) => {
+    if (!timeStr) return '';
+    // Si l'API renvoie déjà "14:46" ou "14:46:00", on garde juste "HH:mm"
+    if (/^\d{2}:\d{2}/.test(timeStr)) return timeStr.substring(0, 5);
+    
+    // Sinon on essaie de parser la date
+    const d = new Date(timeStr);
+    if (isNaN(d.getTime())) return timeStr; // Fallback si la date est illisible
+    return d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  };
+
+
   const fetchOffers = async () => {
     try {
       const data = await rideService.getAvailableOffers(0, 100);
@@ -623,10 +637,7 @@ export default function DriverDashboard() {
                 <View style={[s.departRow, { backgroundColor: Colors.input }]}>
                   <Ionicons name="time-outline" size={14} color={Colors.orange} />
                   <Text style={[s.departTxt, { color: Colors.text }]}>
-                    DÉPART :{' '}
-                    {new Date(item.departureTime).toLocaleTimeString('fr-FR', {
-                      hour: '2-digit', minute: '2-digit',
-                    })}
+                    DÉPART : {formatTime(item.departureTime as string)}
                   </Text>
                 </View>
               )}
@@ -814,13 +825,34 @@ const s = StyleSheet.create({
   ratingBadge: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   ratingBadgeVal: { fontWeight: '900', fontSize: 16 },
 
-  // Radar
+  // Radar & Scanning Live
   radarSection:   { borderTopWidth: 1, paddingTop: Spacing.md, gap: 10 },
-  radarHeader:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  radarTitle:     { fontSize: 20, fontWeight: '900' },
-  radarSub:       { fontSize: 11, fontWeight: '600', marginTop: 2 },
-  sortBtn:        { flexDirection: 'row', alignItems: 'center', gap: 6, borderRadius: Radius.full, paddingHorizontal: 12, paddingVertical: 7 },
-  sortText:       { fontSize: 11, fontWeight: '900' },
+  scanHeader: {
+    flexDirection: 'row', alignItems: 'center', gap: 14,
+    borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.md,
+  },
+  scanIconBox: {
+    width: 56, height: 56, borderRadius: 16,
+    alignItems: 'center', justifyContent: 'center',
+    position: 'relative',
+  },
+  scanLiveDot: {
+    position: 'absolute', top: -2, right: -2,
+    width: 12, height: 12, borderRadius: 6, borderWidth: 2,
+  },
+  scanTitle:   { fontSize: 18, fontWeight: '900', letterSpacing: 0.5 },
+  scanSubRow:  { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 3 },
+  scanDot:     { width: 8, height: 8, borderRadius: 4 },
+  scanSub:     { fontSize: 11, fontWeight: '900', letterSpacing: 1 },
+
+  filterRow:   { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
+  filterChip: {
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    borderRadius: Radius.full, borderWidth: 1,
+    paddingHorizontal: 12, paddingVertical: 8,
+  },
+  filterChipText: { fontSize: 11, fontWeight: '700' },
+
   seeDemandsBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10,
     borderRadius: Radius.xl, borderWidth: 1, paddingVertical: 16,
@@ -832,21 +864,46 @@ const s = StyleSheet.create({
   },
   emptyText:      { fontWeight: '600', fontSize: 13, textAlign: 'center' },
 
-  // Offer card
+  // ═══════════════════════════════════════════
+  // OFFER CARD (Design fidèle au Web)
+  // ═══════════════════════════════════════════
   offerCard: {
-    flexDirection: 'row', alignItems: 'center',
     borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.md, gap: 12,
   },
-  offerRoute:     { flex: 1, gap: 4 },
-  routeRow:       { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  dotOrange:      { width: 10, height: 10, borderRadius: 5 },
-  dotWhite:       { width: 10, height: 10, borderRadius: 5, borderWidth: 2 },
-  routeVLine:     { width: 2, height: 12, marginLeft: 4 },
+  offerTopRow:    { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  clientAvatar: {
+    width: 44, height: 44, borderRadius: 14,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  clientLabel:    { fontSize: 9, fontWeight: '700', letterSpacing: 1.5 },
+  clientName:     { fontSize: 14, fontWeight: '900', marginTop: 2 },
+  offerPriceBlock: { alignItems: 'flex-end' },
+  offerPriceLabel: { fontSize: 9, fontWeight: '700', letterSpacing: 1.5 },
+  offerPriceVal:  { fontSize: 22, fontWeight: '900' },
+
+  departRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    borderRadius: Radius.md, paddingHorizontal: 10, paddingVertical: 8,
+    alignSelf: 'flex-start',
+  },
+  departTxt: { fontSize: 12, fontWeight: '900' },
+
+  routeBlock:     { gap: 4 },
+  routeRowOffer:  { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
+  routeSubLabel:  { fontSize: 9, fontWeight: '700', letterSpacing: 1.5 },
   routeTxt:       { fontSize: 13, fontWeight: '700', flex: 1 },
-  offerRight:     { alignItems: 'flex-end', minWidth: 70 },
-  offerPrice:     { fontSize: 18, fontWeight: '900' },
-  offerCurrency:  { fontSize: 9, fontWeight: '700', letterSpacing: 1.5, marginTop: -2 },
-  offerTime:      { fontSize: 10, fontWeight: '600', marginTop: 4 },
+  
+  // Alignement des points avec le texte
+  dotOrange:      { width: 10, height: 10, borderRadius: 5, marginTop: 4, flexShrink: 0 },
+  dotWhite:       { width: 10, height: 10, borderRadius: 5, borderWidth: 2, marginTop: 4, flexShrink: 0 },
+  routeVLine:     { width: 2, height: 20, marginLeft: 4, marginBottom: 2 },
+
+  consultBtn: {
+    borderRadius: Radius.xl, paddingVertical: 16,
+    alignItems: 'center', justifyContent: 'center',
+    marginTop: 4,
+  },
+  consultBtnTxt: { fontWeight: '900', fontSize: 12, letterSpacing: 2 },
 
   // Menu déconnexion
   menuItem: { flexDirection: 'row', alignItems: 'center', gap: 12 },
@@ -888,73 +945,6 @@ const chartStyles = StyleSheet.create({
   },
   tooltipDate: { fontSize: 9, fontWeight: '900', letterSpacing: 1 },
   tooltipVal:  { fontSize: 13, fontWeight: '900' },
-  // ── Scanning Live ──
-  scanHeader: {
-    flexDirection: 'row', alignItems: 'center', gap: 14,
-    borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.md,
-  },
-  scanIconBox: {
-    width: 56, height: 56, borderRadius: 16,
-    alignItems: 'center', justifyContent: 'center',
-    position: 'relative',
-  },
-  scanLiveDot: {
-    position: 'absolute', top: -2, right: -2,
-    width: 12, height: 12, borderRadius: 6, borderWidth: 2,
-  },
-  scanTitle:   { fontSize: 18, fontWeight: '900', letterSpacing: 0.5 },
-  scanSubRow:  { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 3 },
-  scanDot:     { width: 8, height: 8, borderRadius: 4 },
-  scanSub:     { fontSize: 11, fontWeight: '900', letterSpacing: 1 },
-
-  filterRow:   { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
-  filterChip: {
-    flexDirection: 'row', alignItems: 'center', gap: 5,
-    borderRadius: Radius.full, borderWidth: 1,
-    paddingHorizontal: 12, paddingVertical: 8,
-  },
-  filterChipText: { fontSize: 11, fontWeight: '700' },
-
-  // OfferCard
-  offerCard: {
-    borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.md, gap: 12,
-  },
-  offerTopRow:    { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  clientAvatar: {
-    width: 44, height: 44, borderRadius: 14,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  clientLabel:    { fontSize: 9, fontWeight: '700', letterSpacing: 1.5 },
-  clientName:     { fontSize: 14, fontWeight: '900', marginTop: 2 },
-  offerPriceBlock: { alignItems: 'flex-end' },
-  offerPriceLabel: { fontSize: 9, fontWeight: '700', letterSpacing: 1.5 },
-  offerPriceVal:  { fontSize: 22, fontWeight: '900' },
-
-  departRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    borderRadius: Radius.md, paddingHorizontal: 10, paddingVertical: 8,
-    alignSelf: 'flex-start',
-  },
-  departTxt: { fontSize: 12, fontWeight: '900' },
-
-  routeBlock:     { gap: 4 },
-  routeRowOffer:  { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
-  routeSubLabel:  { fontSize: 9, fontWeight: '700', letterSpacing: 1.5 },
-  routeTxt:       { fontSize: 13, fontWeight: '700', flex: 1 },
-  dotOrange:      { width: 10, height: 10, borderRadius: 5, marginTop: 14, flexShrink: 0 },
-  dotWhite:       { width: 10, height: 10, borderRadius: 5, borderWidth: 2, marginTop: 14, flexShrink: 0 },
-  routeVLine:     { width: 2, height: 16, marginBottom: 2 },
-  offerRight:     { alignItems: 'flex-end', minWidth: 70 },
-  offerPrice:     { fontSize: 18, fontWeight: '900' },
-  offerCurrency:  { fontSize: 9, fontWeight: '700', letterSpacing: 1.5, marginTop: -2 },
-  offerTime:      { fontSize: 10, fontWeight: '600', marginTop: 4 },
-
-  consultBtn: {
-    borderRadius: Radius.xl, paddingVertical: 16,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  consultBtnTxt: { fontWeight: '900', fontSize: 12, letterSpacing: 2 },
-
 });
 
 
