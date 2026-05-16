@@ -1,19 +1,18 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
-  View, Text, TouchableOpacity, StyleSheet,
+  View, Text, TouchableOpacity, StyleSheet, SafeAreaView,
   ScrollView, ActivityIndicator, Alert, TextInput,
   FlatList, KeyboardAvoidingView, Platform, Dimensions
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { WebView } from 'react-native-webview';
 import { router, useRouter } from 'expo-router';
+import { WebView } from 'react-native-webview';
 import { Ionicons } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
 import { useAuth } from '../../src/context/AuthContext';
 import { useTheme } from '../../src/context/ThemeContext';
 import { ThemeToggle } from '../../src/components/ThemeToggle';
 import { LocationSearch } from '../../src/components/LocationSearch';
-import { rideService } from '../../src/services/rideService';
+import { rideService, clearPassengerRideData } from '../../src/services/rideService';
 import { Spacing, Radius } from '../../src/types/theme';
 import { Location, OfferResponse, Bid } from '../../src/types/api';
 
@@ -259,11 +258,27 @@ export default function RideScreen() {
 
   const checkExistingRide = async () => {
     try {
-      // 1. Course active en cours ?
-      const ride = await rideService.getCurrentPassengerRide();
-      if (ride) { setActiveRideId(ride.id); setStep('active'); return; }
+      // 1. activeRideId en SecureStore → vérifier l'état réel du trip
+      const storedRideId = await SecureStore.getItemAsync('activeRideId');
+      if (storedRideId) {
+        try {
+          const rideData = await rideService.getRideDetails(storedRideId);
+          if (rideData.state === 'COMPLETED' || rideData.state === 'CANCELLED') {
+            // Course déjà terminée → nettoyer et rester sur search
+            await clearPassengerRideData();
+            return;
+          }
+          // Course encore active → lancer le polling
+          setActiveRideId(storedRideId);
+          setStep('active');
+          startTrackingPolling(storedRideId);
+          return;
+        } catch {
+          await clearPassengerRideData();
+        }
+      }
 
-      // 2. Offre en attente ? (stockée dans SecureStore après publication)
+      // 2. Offre en attente ?
       const storedOfferId = await SecureStore.getItemAsync('currentOfferId');
       if (storedOfferId) {
         try {
@@ -272,10 +287,15 @@ export default function RideScreen() {
             await SecureStore.deleteItemAsync('currentOfferId');
           } else if (offerData.state === 'VALIDATED') {
             const rideData = await rideService.getRideByOffer(storedOfferId);
-            setActiveRideId(rideData.id);
-            setStep('active');
+            if (rideData.state === 'COMPLETED' || rideData.state === 'CANCELLED') {
+              await clearPassengerRideData();
+            } else {
+              await SecureStore.setItemAsync('activeRideId', rideData.id);
+              setActiveRideId(rideData.id);
+              setStep('active');
+              startTrackingPolling(rideData.id);
+            }
           }
-          // Sinon on reste sur search avec le bouton "Mon offre"
         } catch { /* silent */ }
       }
     } catch { /* silent */ }
@@ -471,8 +491,27 @@ export default function RideScreen() {
   const startTrackingPolling = (rideId: string) => {
     pollRef.current = setInterval(async () => {
       try {
-        const t = await rideService.getTrackingInfo(rideId);
-        setTracking(t);
+        // Vérifier si la course est terminée (chauffeur a appuyé COMPLETED)
+        const rideData = await rideService.getRideDetails(rideId);
+        if (rideData.state === 'COMPLETED') {
+          clearInterval(pollRef.current!);
+          await clearPassengerRideData();
+          setHasActiveOffer(false);
+          setStep('review');
+          return;
+        }
+        if (rideData.state === 'CANCELLED') {
+          clearInterval(pollRef.current!);
+          await clearPassengerRideData();
+          setHasActiveOffer(false);
+          setStep('search');
+          return;
+        }
+        // Tracking GPS
+        try {
+          const t = await rideService.getTrackingInfo(rideId);
+          setTracking(t);
+        } catch { /* GPS peut être absent */ }
       } catch { /* silent */ }
     }, 4000);
   };
@@ -502,26 +541,18 @@ export default function RideScreen() {
     ]);
   };
 
-  const handleFinishRide = async () => {
-    if (!activeRideId) return;
-    setLoading(true);
-    try {
-      await rideService.completeRide(activeRideId);
-      if (pollRef.current) clearInterval(pollRef.current);
-      setStep('review');
-    } catch {
-      Alert.alert('Erreur', 'Impossible de terminer la course.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Le passager ne termine pas la course — seul le chauffeur le fait.
+  // Cette fonction est conservée pour compatibilité mais ne fait rien.
+  const handleFinishRide = () => {};
 
   const handleSubmitReview = async () => {
     if (!activeRideId) return;
     try {
       await rideService.submitReview(activeRideId, stars, comment);
     } catch { /* silent */ }
+    await clearPassengerRideData();
     setStep('search');
+    setHasActiveOffer(false);
     setPickup(null);
     setDest(null);
     setRouteGeoJson(null);
@@ -577,7 +608,7 @@ export default function RideScreen() {
   // RENDU
   // ─────────────────────────────────────────────
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: Colors.background }]} edges={['top', 'bottom', 'left', 'right']}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: Colors.background }]}>
       {/* ── CARTE EN FOND ── */}
       <View style={styles.mapContainer}>
         <WebView
@@ -887,25 +918,20 @@ export default function RideScreen() {
           )}
 
           {/* ══════════════════════════════════════
-              STEP : ACTIVE — course en cours
+              STEP : ACTIVE — course en cours (le chauffeur termine)
           ══════════════════════════════════════ */}
           {step === 'active' && (
             <View style={styles.activeSection}>
-              <View style={[styles.activeBadge, { backgroundColor: '#10B981' + '20' }]}>
-                <Text style={{ color: '#10B981', fontWeight: '900', fontSize: 13 }}>
-                  🚗 Course en cours
+              <View style={[styles.activeBadge, { backgroundColor: Colors.greenBg }]}>
+                <View style={[styles.activePulse, { backgroundColor: Colors.green }]} />
+                <Text style={{ color: Colors.green, fontWeight: '900', fontSize: 13 }}>
+                  Course en cours
                 </Text>
               </View>
-              <TouchableOpacity
-                style={[styles.primaryBtn, { backgroundColor: '#EF4444', marginTop: 16 }]}
-                onPress={handleFinishRide}
-                disabled={loading}
-              >
-                {loading
-                  ? <ActivityIndicator color="white" />
-                  : <Text style={[styles.primaryBtnText, { color: 'white' }]}>Terminer la course</Text>
-                }
-              </TouchableOpacity>
+              <Text style={[styles.activeHint, { color: Colors.textMuted }]}>
+                
+
+              </Text>
             </View>
           )}
 
@@ -1134,16 +1160,18 @@ const styles = StyleSheet.create({
   activeOfferDot: { width: 7, height: 7, borderRadius: 4 },
   activeOfferTxt: { flex: 1, fontSize: 12, fontWeight: '700' },
 
+  activePulse: { width: 8, height: 8, borderRadius: 4 },
+  activeHint:  { fontSize: 13, fontWeight: '600', textAlign: 'center', lineHeight: 20, marginTop: 8 },
+
 });
-
-
-
 // import React, { useState, useEffect, useRef, useCallback } from 'react';
 // import {
-//   View, Text, TouchableOpacity, StyleSheet, SafeAreaView,
+//   View, Text, TouchableOpacity, StyleSheet,
 //   ScrollView, ActivityIndicator, Alert, TextInput,
 //   FlatList, KeyboardAvoidingView, Platform, Dimensions
 // } from 'react-native';
+// import { SafeAreaView } from 'react-native-safe-area-context';
+// import { router, useRouter } from 'expo-router';
 // import { WebView } from 'react-native-webview';
 // import { Ionicons } from '@expo/vector-icons';
 // import * as SecureStore from 'expo-secure-store';
@@ -1151,7 +1179,7 @@ const styles = StyleSheet.create({
 // import { useTheme } from '../../src/context/ThemeContext';
 // import { ThemeToggle } from '../../src/components/ThemeToggle';
 // import { LocationSearch } from '../../src/components/LocationSearch';
-// import { rideService } from '../../src/services/rideService';
+// import { rideService,clearPassengerRideData } from '../../src/services/rideService';
 // import { Spacing, Radius } from '../../src/types/theme';
 // import { Location, OfferResponse, Bid } from '../../src/types/api';
 
@@ -1397,10 +1425,33 @@ const styles = StyleSheet.create({
 
 //   const checkExistingRide = async () => {
 //     try {
+//       // 1. Course active en cours ?
 //       const ride = await rideService.getCurrentPassengerRide();
-//       if (ride) { setActiveRideId(ride.id); setStep('active'); }
+//       if (ride) { setActiveRideId(ride.id); setStep('active'); return; }
+
+//       // 2. Offre en attente ? (stockée dans SecureStore après publication)
+//       const storedOfferId = await SecureStore.getItemAsync('currentOfferId');
+//       if (storedOfferId) {
+//         try {
+//           const offerData = await rideService.getOfferBids(storedOfferId);
+//           if (offerData.state === 'CANCELLED') {
+//             await SecureStore.deleteItemAsync('currentOfferId');
+//           } else if (offerData.state === 'VALIDATED') {
+//             const rideData = await rideService.getRideByOffer(storedOfferId);
+//             setActiveRideId(rideData.id);
+//             setStep('active');
+//           }
+//           // Sinon on reste sur search avec le bouton "Mon offre"
+//         } catch { /* silent */ }
+//       }
 //     } catch { /* silent */ }
 //   };
+
+//   // Vérifier si une offre est en cours (pour afficher le badge)
+//   const [hasActiveOffer, setHasActiveOffer] = React.useState(false);
+//   React.useEffect(() => {
+//     SecureStore.getItemAsync('currentOfferId').then(id => setHasActiveOffer(!!id)).catch(() => {});
+//   }, []);
 
 //   // ─────────────────────────────────────────────
 //   // F2 — TRACÉ OSRM (dans le HTML WebView)
@@ -1586,8 +1637,25 @@ const styles = StyleSheet.create({
 //   const startTrackingPolling = (rideId: string) => {
 //     pollRef.current = setInterval(async () => {
 //       try {
-//         const t = await rideService.getTrackingInfo(rideId);
-//         setTracking(t);
+//         // Vérifier si la course est terminée (chauffeur a appuyé COMPLETED)
+//         const rideData = await rideService.getRideDetails(rideId);
+//         if (rideData.state === 'COMPLETED') {
+//           clearInterval(pollRef.current!);
+//           await clearPassengerRideData();
+//           setStep('review');
+//           return;
+//         }
+//         if (rideData.state === 'CANCELLED') {
+//           clearInterval(pollRef.current!);
+//           await clearPassengerRideData();
+//           setStep('search');
+//           return;
+//         }
+//         // Tracking GPS
+//         try {
+//           const t = await rideService.getTrackingInfo(rideId);
+//           setTracking(t);
+//         } catch { /* GPS peut être absent */ }
 //       } catch { /* silent */ }
 //     }, 4000);
 //   };
@@ -1617,19 +1685,9 @@ const styles = StyleSheet.create({
 //     ]);
 //   };
 
-//   const handleFinishRide = async () => {
-//     if (!activeRideId) return;
-//     setLoading(true);
-//     try {
-//       await rideService.completeRide(activeRideId);
-//       if (pollRef.current) clearInterval(pollRef.current);
-//       setStep('review');
-//     } catch {
-//       Alert.alert('Erreur', 'Impossible de terminer la course.');
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
+//   // Le passager ne termine pas la course — seul le chauffeur le fait.
+//   // Cette fonction est conservée pour compatibilité mais ne fait rien.
+//   const handleFinishRide = () => {};
 
 //   const handleSubmitReview = async () => {
 //     if (!activeRideId) return;
@@ -1692,7 +1750,7 @@ const styles = StyleSheet.create({
 //   // RENDU
 //   // ─────────────────────────────────────────────
 //   return (
-//     <SafeAreaView style={[styles.safe, { backgroundColor: Colors.background }]}>
+//     <SafeAreaView style={[styles.safe, { backgroundColor: Colors.background }]} edges={['top', 'bottom', 'left', 'right']}>
 //       {/* ── CARTE EN FOND ── */}
 //       <View style={styles.mapContainer}>
 //         <WebView
@@ -1762,6 +1820,21 @@ const styles = StyleSheet.create({
 //               <Text style={[styles.tapHint, { color: Colors.textMuted }]}>
 //                 Vous pouvez aussi taper directement sur la carte pour sélectionner un point.
 //               </Text>
+
+//               {/* Bouton discret "Mon offre en cours" */}
+//               {hasActiveOffer && (
+//                 <TouchableOpacity
+//                   style={[styles.activeOfferBtn, { backgroundColor: Colors.orangeBg, borderColor: Colors.orange }]}
+//                   onPress={() => router.push('/(passenger)/my-offer' as any)}
+//                   activeOpacity={0.8}
+//                 >
+//                   <View style={[styles.activeOfferDot, { backgroundColor: Colors.orange }]} />
+//                   <Text style={[styles.activeOfferTxt, { color: Colors.orange }]}>
+//                     Offre en cours — voir les chauffeurs
+//                   </Text>
+//                   <Ionicons name="chevron-forward" size={14} color={Colors.orange} />
+//                 </TouchableOpacity>
+//               )}
 
 //               {/* Bouton Estimer */}
 //               <TouchableOpacity
@@ -1987,25 +2060,19 @@ const styles = StyleSheet.create({
 //           )}
 
 //           {/* ══════════════════════════════════════
-//               STEP : ACTIVE — course en cours
+//               STEP : ACTIVE — course en cours (le chauffeur termine)
 //           ══════════════════════════════════════ */}
 //           {step === 'active' && (
 //             <View style={styles.activeSection}>
-//               <View style={[styles.activeBadge, { backgroundColor: '#10B981' + '20' }]}>
-//                 <Text style={{ color: '#10B981', fontWeight: '900', fontSize: 13 }}>
-//                   🚗 Course en cours
+//               <View style={[styles.activeBadge, { backgroundColor: Colors.greenBg }]}>
+//                 <View style={[styles.activePulse, { backgroundColor: Colors.green }]} />
+//                 <Text style={{ color: Colors.green, fontWeight: '900', fontSize: 13 }}>
+//                   Course en cours
 //                 </Text>
 //               </View>
-//               <TouchableOpacity
-//                 style={[styles.primaryBtn, { backgroundColor: '#EF4444', marginTop: 16 }]}
-//                 onPress={handleFinishRide}
-//                 disabled={loading}
-//               >
-//                 {loading
-//                   ? <ActivityIndicator color="white" />
-//                   : <Text style={[styles.primaryBtnText, { color: 'white' }]}>Terminer la course</Text>
-//                 }
-//               </TouchableOpacity>
+//               <Text style={[styles.activeHint, { color: Colors.textMuted }]}>
+                
+//               </Text>
 //             </View>
 //           )}
 
@@ -2226,6 +2293,15 @@ const styles = StyleSheet.create({
 //   phoneInput: { flex: 1, fontWeight: '700', fontSize: 15, padding: 0 },
 //   phoneStatic: { flex: 1, fontWeight: '700', fontSize: 15 },
 
+//   activeOfferBtn: {
+//     flexDirection: 'row', alignItems: 'center', gap: 8,
+//     borderRadius: Radius.md, borderWidth: 1,
+//     paddingHorizontal: Spacing.md, paddingVertical: 11,
+//   },
+//   activeOfferDot: { width: 7, height: 7, borderRadius: 4 },
+//   activeOfferTxt: { flex: 1, fontSize: 12, fontWeight: '700' },
+
+//   activePulse: { width: 8, height: 8, borderRadius: 4 },
+//   activeHint:  { fontSize: 13, fontWeight: '600', textAlign: 'center', lineHeight: 20, marginTop: 8 },
+
 // });
-
-
