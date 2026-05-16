@@ -13,8 +13,9 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, FlatList,
   ActivityIndicator, StyleSheet, Modal, Platform,
-  KeyboardAvoidingView, SafeAreaView, StatusBar,
+  KeyboardAvoidingView, StatusBar,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ExpoLocation from 'expo-location';
 import { Spacing, Radius } from '../types/theme';
@@ -280,7 +281,7 @@ export function LocationSearch({
         onRequestClose={closeModal}
         statusBarTranslucent
       >
-        <SafeAreaView style={[styles.modalSafe, { backgroundColor: Colors.background }]}>
+        <SafeAreaView style={[styles.modalSafe, { backgroundColor: Colors.background }]} edges={['top', 'bottom']}>
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             style={{ flex: 1 }}

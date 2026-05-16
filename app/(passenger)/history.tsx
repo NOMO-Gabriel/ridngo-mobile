@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import {
-  View, Text, StyleSheet, SafeAreaView, FlatList,
+  View, Text, StyleSheet, FlatList,
   ActivityIndicator, TouchableOpacity, RefreshControl, Dimensions
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { WebView } from 'react-native-webview';
 import { rideService } from '../../src/services/rideService';
@@ -54,7 +55,7 @@ export default function HistoryScreen() {
   };
 
   if (loading) return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: Colors.background }]}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: Colors.background }]} edges={['top', 'bottom', 'left', 'right']}>
       <View style={styles.centered}>
         <ActivityIndicator color={Colors.orange} size="large" />
       </View>
@@ -118,7 +119,7 @@ export default function HistoryScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: Colors.background }]}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: Colors.background }]} edges={['top', 'bottom', 'left', 'right']}>
       <View style={[styles.header, { borderBottomColor: Colors.cardBorder }]}>
         <View>
           <Text style={[styles.title, { color: Colors.text }]}>Mes Voyages</Text>

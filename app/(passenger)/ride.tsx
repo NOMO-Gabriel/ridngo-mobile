@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
-  View, Text, TouchableOpacity, StyleSheet, SafeAreaView,
+  View, Text, TouchableOpacity, StyleSheet,
   ScrollView, ActivityIndicator, Alert, TextInput,
   FlatList, KeyboardAvoidingView, Platform, Dimensions
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 import { router, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -576,7 +577,7 @@ export default function RideScreen() {
   // RENDU
   // ─────────────────────────────────────────────
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: Colors.background }]}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: Colors.background }]} edges={['top', 'bottom', 'left', 'right']}>
       {/* ── CARTE EN FOND ── */}
       <View style={styles.mapContainer}>
         <WebView

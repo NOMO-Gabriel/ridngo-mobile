@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import {
-  View, Text, StyleSheet, SafeAreaView, ScrollView,
+  View, Text, StyleSheet, ScrollView,
   TouchableOpacity, TextInput, ActivityIndicator, Alert, Switch
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { vehicleApi } from '../../src/services/api';
@@ -144,7 +145,7 @@ export default function DriverOnboarding() {
   );
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={styles.safe} edges={['top', 'bottom', 'left', 'right']}>
       {/* Progress indicator */}
       <View style={styles.progress}>
         {[0, 1, 2].map(i => (

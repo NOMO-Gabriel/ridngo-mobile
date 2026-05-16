@@ -1,9 +1,9 @@
 import React, { useState, useCallback } from 'react';
 import {
-  View, Text, TouchableOpacity, StyleSheet, TextInput,
-  SafeAreaView, KeyboardAvoidingView, Platform, ScrollView,
+  View, Text, TouchableOpacity, StyleSheet, TextInput, KeyboardAvoidingView, Platform, ScrollView,
   ActivityIndicator, Alert, Image
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -67,7 +67,7 @@ export default function RegisterScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={styles.safe} edges={['top', 'bottom', 'left', 'right']}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}

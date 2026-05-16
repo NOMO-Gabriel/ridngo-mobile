@@ -15,9 +15,10 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
-  View, Text, TouchableOpacity, StyleSheet, SafeAreaView,
+  View, Text, TouchableOpacity, StyleSheet,
   ScrollView, ActivityIndicator, Alert, RefreshControl,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
@@ -336,7 +337,7 @@ export default function MyOfferScreen() {
   // RENDU
   // ─────────────────────────────────────────────────────────────────────────
   return (
-    <SafeAreaView style={[s.safe, { backgroundColor: Colors.background }]}>
+    <SafeAreaView style={[s.safe, { backgroundColor: Colors.background }]} edges={['top', 'bottom', 'left', 'right']}>
 
       {/* Header */}
       <View style={[s.header, { borderBottomColor: Colors.cardBorder }]}>

@@ -16,9 +16,10 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
-  View, Text, TouchableOpacity, StyleSheet, SafeAreaView,
+  View, Text, TouchableOpacity, StyleSheet,
   ScrollView, ActivityIndicator, Alert, Dimensions,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -242,7 +243,7 @@ export default function OfferDetailScreen() {
   // ── Loading ───────────────────────────────────────────────────────────────
   if (loading) {
     return (
-      <SafeAreaView style={[s.safe, { backgroundColor: Colors.background }]}>
+      <SafeAreaView style={[s.safe, { backgroundColor: Colors.background }]} edges={['top', 'bottom', 'left', 'right']}>
         <View style={s.centered}>
           <ActivityIndicator color={Colors.orange} size="large" />
           <Text style={[s.loadingTxt, { color: Colors.textMuted }]}>Chargement de l'offre...</Text>
@@ -253,7 +254,7 @@ export default function OfferDetailScreen() {
 
   if (!offer) {
     return (
-      <SafeAreaView style={[s.safe, { backgroundColor: Colors.background }]}>
+      <SafeAreaView style={[s.safe, { backgroundColor: Colors.background }]} edges={['top', 'bottom', 'left', 'right']}>
         <View style={s.centered}>
           <Ionicons name="alert-circle-outline" size={48} color={Colors.red} />
           <Text style={[s.loadingTxt, { color: Colors.textMuted }]}>Offre introuvable</Text>
@@ -270,7 +271,7 @@ export default function OfferDetailScreen() {
 
   // ── Rendu ─────────────────────────────────────────────────────────────────
   return (
-    <SafeAreaView style={[s.safe, { backgroundColor: Colors.background }]}>
+    <SafeAreaView style={[s.safe, { backgroundColor: Colors.background }]} edges={['top', 'bottom', 'left', 'right']}>
 
       {/* ── Header ── */}
       <View style={[s.header, { borderBottomColor: Colors.cardBorder }]}>

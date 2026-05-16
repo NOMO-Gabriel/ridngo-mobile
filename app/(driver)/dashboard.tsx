@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
-  View, Text, StyleSheet, SafeAreaView, ScrollView,
+  View, Text, StyleSheet, ScrollView,
   TouchableOpacity, ActivityIndicator, RefreshControl, Alert,
   Dimensions,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useAuth } from '../../src/context/AuthContext';
@@ -245,7 +246,7 @@ export default function DriverDashboard() {
   // ── Loading ───────────────────────────────────────────────────────────────
   if (loading) {
     return (
-      <SafeAreaView style={[s.safe, { backgroundColor: Colors.background }]}>
+      <SafeAreaView style={[s.safe, { backgroundColor: Colors.background }]} edges={['top', 'bottom', 'left', 'right']}>
         <View style={s.centered}>
           <ActivityIndicator color={Colors.orange} size="large" />
           <Text style={[s.loadingText, { color: Colors.textMuted }]}>Chargement...</Text>
@@ -256,7 +257,7 @@ export default function DriverDashboard() {
 
   // ── Rendu ─────────────────────────────────────────────────────────────────
   return (
-    <SafeAreaView style={[s.safe, { backgroundColor: Colors.background }]}>
+    <SafeAreaView style={[s.safe, { backgroundColor: Colors.background }]} edges={['top', 'bottom', 'left', 'right']}>
       {/* ── Header fixe ── */}
       <View style={[s.header, { backgroundColor: Colors.background, borderBottomColor: Colors.cardBorder }]}>
         <View style={s.headerLeft}>

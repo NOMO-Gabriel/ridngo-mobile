@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context'; 
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../src/context/ThemeContext';
@@ -14,7 +15,7 @@ export default function LandingScreen() {
       <View style={[styles.blob1, { backgroundColor: 'rgba(255,140,0,0.12)' }]} />
       <View style={[styles.blob2, { backgroundColor: 'rgba(59,130,246,0.08)' }]} />
 
-      <SafeAreaView style={styles.safe}>
+      <SafeAreaView style={styles.safe} edges={['top', 'bottom', 'left', 'right']}>
         {/* Top bar */}
         <View style={styles.topBar}>
           <View style={styles.logoRow}>
